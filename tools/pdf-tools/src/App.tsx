@@ -1,71 +1,56 @@
 import { useState, useCallback, useEffect } from 'react'
-import { FileUploader } from './components/FileUploader'
-import { PreviewPage } from './components/PreviewPage'
-import { ResultPage } from './components/ResultPage'
 import { PDFFile } from './types'
-import { mergePDFs, analyzePDF } from './api/merge'
-
-type PageState = 'upload' | 'preview' | 'result'
-
-interface MergeResult {
-  blob: Blob
-  fileName: string
-  fileSize: string
-  pageCount: number
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-}
+import { mergePDFs, analyzePDF, downloadBlob } from './api/merge'
+import { Breadcrumb } from './components/Breadcrumb'
+import { CoreToolArea } from './components/CoreToolArea'
+import { InlineFeedback } from './components/InlineFeedback'
+import { UseCaseAccordion, UseCaseOptions } from './components/UseCaseAccordion'
+import { HowToSection } from './components/HowToSection'
+import { FAQSection } from './components/FAQSection'
+import './index.css'
 
 function App() {
-  const [pageState, setPageState] = useState<PageState>('upload')
   const [files, setFiles] = useState<PDFFile[]>([])
-  const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map())
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [mergeResult, setMergeResult] = useState<MergeResult | null>(null)
+  const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null)
+  const [useCaseOptions, setUseCaseOptions] = useState<UseCaseOptions>({
+    optimizeForPrint: false,
+    keepBookmarks: false,
+    usePageRange: false,
+  })
 
-  // Generate thumbnail for PDF file
-  const generateThumbnail = useCallback(async (file: File): Promise<string | null> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = async () => {
-        try {
-          resolve(null)
-        } catch {
-          resolve(null)
-        }
-      }
-      reader.onerror = () => resolve(null)
-      reader.readAsArrayBuffer(file)
-    })
-  }, [])
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'PDF Tools', href: '/pdf-tools' },
+    { label: 'Merge PDF' },
+  ]
 
-  const handleFilesAdded = useCallback(async (newFiles: PDFFile[] | FileList) => {
-    let pdfFiles: PDFFile[] = []
+  // Handle files added
+  const handleFilesAdded = useCallback(async (newFiles: File[]) => {
+    const pdfFiles: PDFFile[] = []
 
-    if (newFiles instanceof FileList) {
-      for (let i = 0; i < newFiles.length; i++) {
-        const file = newFiles[i]
-        if (file.type !== 'application/pdf') continue
-        pdfFiles.push({
-          id: `${Date.now()}-${i}`,
-          file,
-          name: file.name,
-          pageCount: 0,
-          hasBookmarks: false,
-          isEncrypted: false,
-        })
-      }
-    } else {
-      pdfFiles = newFiles
+    for (let i = 0; i < newFiles.length; i++) {
+      const file = newFiles[i]
+      if (file.type !== 'application/pdf') continue
+
+      pdfFiles.push({
+        id: `${Date.now()}-${i}`,
+        file,
+        name: file.name,
+        pageCount: 0,
+        hasBookmarks: false,
+        isEncrypted: false,
+        pageRange: 'all',
+      })
     }
 
-    if (pdfFiles.length === 0) return
+    if (pdfFiles.length === 0) {
+      setFeedback({ message: 'Please upload PDF files only', type: 'error' })
+      return
+    }
 
+    // Analyze files
     const analyzedFiles = await Promise.all(
       pdfFiles.map(async (pdfFile) => {
         try {
@@ -77,114 +62,163 @@ function App() {
       })
     )
 
-    for (const pdfFile of analyzedFiles) {
-      const thumbnail = await generateThumbnail(pdfFile.file)
-      if (thumbnail) {
-        setThumbnails(prev => new Map(prev).set(pdfFile.id, thumbnail))
-      }
-    }
-
-    setFiles(prev => [...prev, ...analyzedFiles])
-    setError(null)
-
-    if (pageState === 'upload') {
-      setPageState('preview')
-    }
-  }, [pageState, generateThumbnail])
-
-  const handleRemoveFile = useCallback((id: string) => {
-    setFiles(prev => {
-      const newFiles = prev.filter(f => f.id !== id)
-      if (newFiles.length === 0) {
-        setPageState('upload')
-      }
-      return newFiles
-    })
-    setThumbnails(prev => {
-      const newMap = new Map(prev)
-      newMap.delete(id)
-      return newMap
-    })
+    setFiles((prev) => [...prev, ...analyzedFiles])
+    setFeedback(null)
   }, [])
 
+  // Handle file removal
+  const handleRemoveFile = useCallback((id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id))
+  }, [])
+
+  // Handle file reordering
+  const handleReorderFiles = useCallback((newFiles: PDFFile[]) => {
+    setFiles(newFiles)
+  }, [])
+
+  // Handle page range change
+  const handlePageRangeChange = useCallback((fileId: string, pageRange: string) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === fileId ? { ...f, pageRange } : f))
+    )
+  }, [])
+
+  // Handle use case options change
+  const handleUseCaseOptionsChange = useCallback((options: UseCaseOptions) => {
+    setUseCaseOptions(options)
+
+    // Show feedback
+    if (options.optimizeForPrint) {
+      setFeedback({ message: '✓ Printing settings applied', type: 'success' })
+    } else if (options.keepBookmarks) {
+      setFeedback({ message: '✓ Bookmarks will be preserved', type: 'success' })
+    } else if (options.usePageRange) {
+      setFeedback({ message: '✓ Page range mode enabled', type: 'info' })
+    }
+
+    // Auto-hide feedback after 3 seconds
+    setTimeout(() => setFeedback(null), 3000)
+  }, [])
+
+  // Handle merge
   const handleMerge = useCallback(async () => {
     if (files.length === 0) {
-      setError('Please upload PDF files first')
+      setFeedback({ message: 'Please upload PDF files first', type: 'error' })
+      return
+    }
+
+    // Check for encrypted files
+    const hasEncrypted = files.some((f) => f.isEncrypted)
+    if (hasEncrypted) {
+      setFeedback({
+        message: 'Cannot merge encrypted PDF files. Please remove password protection first.',
+        type: 'error',
+      })
       return
     }
 
     setLoading(true)
-    setError(null)
+    setFeedback(null)
 
     try {
-      const commands = files.map((_, i) => `${i + 1}:all`).join('\n')
-      const blob = await mergePDFs(files, commands)
+      // Build command string based on options
+      const commands: string[] = []
 
-      const totalPages = files.reduce((sum, f) => sum + f.pageCount, 0)
-
-      const baseName = files[0].name.replace('.pdf', '')
-      const fileName = `${baseName}-merged.pdf`
-
-      setMergeResult({
-        blob,
-        fileName,
-        fileSize: formatFileSize(blob.size),
-        pageCount: totalPages
+      // Add file commands with page ranges
+      files.forEach((file, index) => {
+        const pageRange = useCaseOptions.usePageRange && file.pageRange ? file.pageRange : 'all'
+        commands.push(`${index + 1}:${pageRange}`)
       })
 
-      setPageState('result')
+      // Add option flags
+      if (useCaseOptions.keepBookmarks) {
+        commands.push('--keep-bookmarks')
+      }
+      if (useCaseOptions.optimizeForPrint) {
+        commands.push('--print')
+      }
+
+      const commandString = commands.join('\n')
+
+      // Call API
+      const blob = await mergePDFs(files, commandString)
+
+      // Download the result
+      const baseName = files[0].name.replace('.pdf', '')
+      const fileName = `${baseName}-merged.pdf`
+      downloadBlob(blob, fileName)
+
+      setFeedback({
+        message: `✓ Successfully merged ${files.length} PDF file${files.length > 1 ? 's' : ''}!`,
+        type: 'success',
+      })
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setFeedback(null), 5000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Merge failed')
+      setFeedback({
+        message: err instanceof Error ? err.message : 'Merge failed. Please try again.',
+        type: 'error',
+      })
     } finally {
       setLoading(false)
     }
-  }, [files])
+  }, [files, useCaseOptions])
 
-  const handleReset = useCallback(() => {
-    setFiles([])
-    setThumbnails(new Map())
-    setMergeResult(null)
-    setError(null)
-    setPageState('upload')
-  }, [])
-
+  // Clear feedback on file changes
   useEffect(() => {
-    return () => {
-      thumbnails.forEach(url => URL.revokeObjectURL(url))
+    if (files.length === 0 && feedback?.type === 'success') {
+      setFeedback(null)
     }
-  }, [thumbnails])
+  }, [files, feedback])
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12">
-      <div className="max-w-5xl mx-auto px-4">
-        {/* Main container with border */}
-        <div className="bg-blue-50 border border-blue-200 border-dashed rounded-2xl min-h-[500px] flex flex-col">
-          {/* Content area */}
-          <div className="flex-1 flex items-center justify-center p-8">
-            {pageState === 'upload' && (
-              <FileUploader onFilesAdded={handleFilesAdded} existingCount={files.length} />
-            )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
 
-            {pageState === 'preview' && (
-              <PreviewPage
-                files={files}
-                thumbnails={thumbnails}
-                onRemove={handleRemoveFile}
-                onFilesAdded={handleFilesAdded}
-                onMerge={handleMerge}
-                loading={loading}
-                error={error}
-              />
-            )}
+        {/* Page Header */}
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Merge PDF</h1>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Combine multiple PDF files into one document. Upload your PDFs, arrange them in order,
+            and merge them instantly. Free, secure, and easy to use.
+          </p>
+        </header>
 
-            {pageState === 'result' && mergeResult && (
-              <ResultPage
-                result={mergeResult}
-                onReset={handleReset}
-              />
-            )}
+        {/* Core Tool Area - Fixed position */}
+        <section className="mb-8">
+          <CoreToolArea
+            files={files}
+            onFilesAdded={handleFilesAdded}
+            onRemoveFile={handleRemoveFile}
+            onReorderFiles={handleReorderFiles}
+            onMerge={handleMerge}
+            loading={loading}
+            usePageRange={useCaseOptions.usePageRange}
+            onPageRangeChange={handlePageRangeChange}
+          />
+        </section>
+
+        {/* Inline Feedback */}
+        {feedback && <InlineFeedback message={feedback.message} type={feedback.type} />}
+
+        {/* Use Case Accordion */}
+        <UseCaseAccordion options={useCaseOptions} onOptionsChange={handleUseCaseOptionsChange} />
+
+        {/* How-to Section */}
+        <HowToSection />
+
+        {/* FAQ Section */}
+        <FAQSection />
+
+        {/* Footer */}
+        <footer className="mt-16 py-8 border-t border-gray-200">
+          <div className="text-center text-sm text-gray-500">
+            <p>© 2024 Toolibox. All files are processed securely and deleted automatically.</p>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   )

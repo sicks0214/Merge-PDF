@@ -20,7 +20,7 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/api/tools/pdf/analyze")
+@app.post("/api/pdf/analyze")
 async def analyze(file: UploadFile = File(...)):
     """分析 PDF 文件，返回页数、书签等信息"""
     if not file.filename.lower().endswith('.pdf'):
@@ -34,7 +34,7 @@ async def analyze(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/api/tools/pdf/merge")
+@app.post("/api/pdf/merge")
 async def merge(
     files: list[UploadFile] = File(...),
     commands: str = Form(...)

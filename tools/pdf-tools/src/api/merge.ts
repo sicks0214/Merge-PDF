@@ -1,6 +1,6 @@
 import { PDFFile } from '../types'
 
-const API_BASE = '/api/tools/pdf'
+const API_BASE = '/api/pdf'
 
 export interface MergeRequest {
   files: File[]

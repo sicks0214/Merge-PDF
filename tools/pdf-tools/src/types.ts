@@ -5,6 +5,7 @@ export interface PDFFile {
   pageCount: number
   hasBookmarks: boolean
   isEncrypted: boolean
+  pageRange?: string  // e.g. "all", "1-5", "1,3,7-10"
 }
 
 export interface MergeCommand {
