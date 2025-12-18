@@ -1,60 +1,60 @@
 export function HowToSection() {
   return (
-    <section className="max-w-4xl mx-auto mt-12 bg-white rounded-lg border border-gray-200 p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">How to Merge PDF Files</h2>
-      <ol className="space-y-4 text-gray-700">
-        <li className="flex gap-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-            1
-          </span>
-          <div>
-            <strong className="text-gray-800">Upload multiple PDF files</strong>
-            <p className="text-gray-600 mt-1">
-              Click the upload area or drag and drop your PDF files. You can upload multiple files at once.
-            </p>
+    <section className="mt-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-100 p-10 shadow-lg">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-md">
+          <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">How to Merge PDF Files</h2>
+        <p className="text-gray-600">Simple steps to combine your documents</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md">
+              1
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Upload PDF Files</h3>
+              <p className="text-gray-600 text-sm">Select or drag and drop multiple PDF files you want to merge.</p>
+            </div>
           </div>
-        </li>
-        <li className="flex gap-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-            2
-          </span>
-          <div>
-            <strong className="text-gray-800">Arrange files in the desired order</strong>
-            <p className="text-gray-600 mt-1">
-              Drag and drop files to reorder them. The merged PDF will follow this sequence.
-            </p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md">
+              2
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Arrange Files</h3>
+              <p className="text-gray-600 text-sm">Drag and drop files to reorder them in your desired sequence.</p>
+            </div>
           </div>
-        </li>
-        <li className="flex gap-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-            3
-          </span>
-          <div>
-            <strong className="text-gray-800">Choose merge options if needed</strong>
-            <p className="text-gray-600 mt-1">
-              Expand the use case sections below to configure printing optimization, bookmark preservation, or page range selection.
-            </p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md">
+              3
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Choose Options</h3>
+              <p className="text-gray-600 text-sm">Optionally select merge options like keeping bookmarks or page ranges.</p>
+            </div>
           </div>
-        </li>
-        <li className="flex gap-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">
-            4
-          </span>
-          <div>
-            <strong className="text-gray-800">Click "Merge PDF" to download the result</strong>
-            <p className="text-gray-600 mt-1">
-              The merged PDF will be generated and automatically downloaded to your device.
-            </p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md">
+              4
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">Download Result</h3>
+              <p className="text-gray-600 text-sm">Click "Merge PDF" and download your combined document instantly.</p>
+            </div>
           </div>
-        </li>
-      </ol>
-
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 className="font-semibold text-blue-800 mb-2">Pro Tip</h3>
-        <p className="text-blue-700 text-sm">
-          You can merge PDF files with different page sizes, orientations, and content types.
-          The tool automatically handles various PDF formats and preserves document quality.
-        </p>
+        </div>
       </div>
     </section>
   )

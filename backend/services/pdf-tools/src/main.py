@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import io
-from .pdf_merger import analyze_pdf, merge_pdfs, parse_commands
+from pdf_merger import analyze_pdf, merge_pdfs, parse_commands
 
 app = FastAPI(title="PDF Tools API")
 

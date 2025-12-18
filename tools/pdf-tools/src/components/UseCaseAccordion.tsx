@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 export interface UseCaseOptions {
   optimizeForPrint: boolean
   keepBookmarks: boolean
@@ -11,46 +9,21 @@ interface UseCaseAccordionProps {
   onOptionsChange: (options: UseCaseOptions) => void
 }
 
-interface AccordionItemProps {
-  title: string
-  isOpen: boolean
-  onToggle: () => void
+interface CardItemProps {
   children: React.ReactNode
 }
 
-function AccordionItem({ title, isOpen, onToggle, children }: AccordionItemProps) {
+function CardItem({ children }: CardItemProps) {
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-6 py-4 bg-white hover:bg-gray-50 transition-colors text-left"
-        aria-expanded={isOpen}
-      >
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        <svg
-          className={`w-5 h-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          {children}
-        </div>
-      )}
+    <div className="border-2 rounded-xl overflow-hidden flex-1 border-gray-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+      <div className="px-5 py-5 bg-gradient-to-br from-gray-50 to-white">
+        {children}
+      </div>
     </div>
   )
 }
 
 export function UseCaseAccordion({ options, onOptionsChange }: UseCaseAccordionProps) {
-  const [openSection, setOpenSection] = useState<string | null>(null)
-
-  const toggleSection = (section: string) => {
-    setOpenSection(openSection === section ? null : section)
-  }
 
   const handleUsePrintSetting = () => {
     onOptionsChange({
@@ -75,87 +48,132 @@ export function UseCaseAccordion({ options, onOptionsChange }: UseCaseAccordionP
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
-      {/* Use Case 1: Merge PDF for Printing */}
-      <AccordionItem
-        title="Merge PDF for Printing"
-        isOpen={openSection === 'printing'}
-        onToggle={() => toggleSection('printing')}
-      >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            Optimize your merged PDF for print output with unified paper size settings.
-            This mode ensures all pages are standardized to A4 or Letter format.
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1">
-            <li>Unified paper size (A4 / Letter)</li>
-            <li>Removes blank trailing pages</li>
-            <li>Optimized for professional printing</li>
-          </ul>
-          <button
-            onClick={handleUsePrintSetting}
-            className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Use this setting
-          </button>
-        </div>
-      </AccordionItem>
+    <div className="mt-12">
+      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Advanced Merge Options</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Use Case 1: Merge PDF for Printing */}
+        <CardItem>
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">Merge PDF for Printing</h2>
 
-      {/* Use Case 2: Merge PDF Keep Bookmarks */}
-      <AccordionItem
-        title="Merge PDF Keep Bookmarks"
-        isOpen={openSection === 'bookmarks'}
-        onToggle={() => toggleSection('bookmarks')}
-      >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            Preserve the original bookmarks and table of contents from your PDF files.
-            Perfect for combining chapters or sections while maintaining navigation structure.
-          </p>
-          <ul className="list-disc list-inside text-gray-600 space-y-1">
-            <li>Preserves original bookmarks from all PDFs</li>
-            <li>Creates file-level bookmarks for each source</li>
-            <li>Maintains hierarchical structure</li>
-          </ul>
-          <button
-            onClick={handleUseBookmarksSetting}
-            className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Use this setting
-          </button>
-        </div>
-      </AccordionItem>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Merge PDF for Printing lets you combine multiple PDF files into a single
+              document optimized for printing. This option ensures consistent page size
+              and layout across all files, making it suitable for professional printing
+              and physical distribution.
+            </p>
 
-      {/* Use Case 3: Merge PDF by Page Range */}
-      <AccordionItem
-        title="Merge PDF by Page Range"
-        isOpen={openSection === 'pagerange'}
-        onToggle={() => toggleSection('pagerange')}
-      >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            Select specific pages from each PDF file to include in the merged output.
-            Use flexible syntax to define page ranges.
-          </p>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Syntax Examples:</h3>
-            <ul className="text-sm text-gray-600 space-y-1 font-mono">
-              <li><strong>1:all</strong> - All pages from file 1</li>
-              <li><strong>2:1-5</strong> - Pages 1 to 5 from file 2</li>
-              <li><strong>3:1,3,7-10</strong> - Pages 1, 3, and 7-10 from file 3</li>
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Optimized for print output</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Unified paper size and layout</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Ideal for printing and offline use</span>
+              </li>
             </ul>
+            <button
+              onClick={handleUsePrintSetting}
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm"
+            >
+              Use this setting
+            </button>
           </div>
-          <p className="text-sm text-gray-500">
-            Note: You can specify page ranges for individual files in the file list above.
-          </p>
-          <button
-            onClick={handleUsePageRangeSetting}
-            className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Enable page range mode
-          </button>
-        </div>
-      </AccordionItem>
+        </CardItem>
+
+        {/* Use Case 2: Merge PDF Keep Bookmarks */}
+        <CardItem>
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">Merge PDF Keep Bookmarks</h2>
+
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Merge PDF Keep Bookmarks lets you combine multiple PDF files while
+              preserving the original bookmarks from each document. This is ideal
+              when merging structured PDFs such as reports, manuals, or ebooks,
+              ensuring easy navigation in the merged file.
+            </p>
+
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Preserve original bookmarks</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Maintain document structure</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Ideal for long or structured PDFs</span>
+              </li>
+            </ul>
+            <button
+              onClick={handleUseBookmarksSetting}
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm"
+            >
+              Use this setting
+            </button>
+          </div>
+        </CardItem>
+
+        {/* Use Case 3: Merge PDF by Page Range */}
+        <CardItem>
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">Merge PDF by Page Range</h2>
+
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Merge PDF by Page Range allows you to select specific pages from each
+              PDF file before merging. This option is useful when you only need
+              certain sections or chapters from multiple documents in a single PDF,
+              helping you create a more focused and lightweight merged file.
+            </p>
+
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Select custom page ranges (e.g. 1-3, 5, 8-10)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Merge only required pages from each PDF</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Reduce the final PDF file size</span>
+              </li>
+            </ul>
+            <button
+              onClick={handleUsePageRangeSetting}
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm"
+            >
+              Apply page range
+            </button>
+          </div>
+        </CardItem>
+      </div>
     </div>
   )
 }

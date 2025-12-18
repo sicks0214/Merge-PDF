@@ -7,10 +7,10 @@ export function InlineFeedback({ message, type = 'success' }: InlineFeedbackProp
   if (!message) return null
 
   const styles = {
-    success: 'bg-green-50 border-green-200 text-green-700',
-    info: 'bg-blue-50 border-blue-200 text-blue-700',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-    error: 'bg-red-50 border-red-200 text-red-700',
+    success: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 text-green-800',
+    info: 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-300 text-blue-800',
+    warning: 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 text-yellow-800',
+    error: 'bg-gradient-to-r from-red-50 to-pink-50 border-red-300 text-red-800',
   }
 
   const icons = {
@@ -37,11 +37,11 @@ export function InlineFeedback({ message, type = 'success' }: InlineFeedbackProp
   }
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 border rounded-lg ${styles[type]} mb-6 transition-all`}>
+    <div className={`flex items-center gap-3 px-6 py-4 border-2 rounded-xl ${styles[type]} mb-8 shadow-md transition-all animate-in fade-in slide-in-from-top-2 duration-300`}>
       <div className="flex-shrink-0">
         {icons[type]}
       </div>
-      <p className="text-sm font-medium">{message}</p>
+      <p className="font-semibold">{message}</p>
     </div>
   )
 }
