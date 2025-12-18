@@ -1,13 +1,21 @@
 import { useState, useCallback, useEffect } from 'react'
 import { PDFFile } from './types'
-import { mergePDFs, analyzePDF, downloadBlob } from './api/merge'
+import { mergePDFs, analyzePDF } from './api/merge'
 import { Breadcrumb } from './components/Breadcrumb'
 import { CoreToolArea } from './components/CoreToolArea'
 import { InlineFeedback } from './components/InlineFeedback'
 import { UseCaseAccordion, UseCaseOptions } from './components/UseCaseAccordion'
 import { HowToSection } from './components/HowToSection'
 import { FAQSection } from './components/FAQSection'
+import { ResultPage } from './components/ResultPage'
 import './index.css'
+
+interface MergeResult {
+  blob: Blob
+  fileName: string
+  fileSize: string
+  pageCount: number
+}
 
 function App() {
   const [files, setFiles] = useState<PDFFile[]>([])
@@ -18,6 +26,7 @@ function App() {
     keepBookmarks: false,
     usePageRange: false,
   })
+  const [mergeResult, setMergeResult] = useState<MergeResult | null>(null)
 
   // Breadcrumb items
   const breadcrumbItems = [
@@ -143,18 +152,22 @@ function App() {
       // Call API
       const blob = await mergePDFs(files, commandString)
 
-      // Download the result
+      // Calculate total page count
+      const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0)
+
+      // Prepare file name
       const baseName = files[0].name.replace('.pdf', '')
       const fileName = `${baseName}-merged.pdf`
-      downloadBlob(blob, fileName)
 
-      setFeedback({
-        message: `✓ Successfully merged ${files.length} PDF file${files.length > 1 ? 's' : ''}!`,
-        type: 'success',
+      // Save result instead of auto-downloading
+      setMergeResult({
+        blob,
+        fileName,
+        fileSize: `${Math.round(blob.size / 1024 / 1024)} MB`,
+        pageCount: totalPages,
       })
 
-      // Auto-hide success message after 5 seconds
-      setTimeout(() => setFeedback(null), 5000)
+      setFeedback(null)
     } catch (err) {
       setFeedback({
         message: err instanceof Error ? err.message : 'Merge failed. Please try again.',
@@ -164,6 +177,13 @@ function App() {
       setLoading(false)
     }
   }, [files, useCaseOptions])
+
+  // Handle reset
+  const handleReset = useCallback(() => {
+    setMergeResult(null)
+    setFiles([])
+    setFeedback(null)
+  }, [])
 
   // Clear feedback on file changes
   useEffect(() => {
@@ -194,19 +214,26 @@ function App() {
           </p>
         </header>
 
-        {/* Core Tool Area - Fixed position */}
+        {/* Show Result Page or Core Tool Area */}
         <section className="mb-12">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-            <CoreToolArea
-              files={files}
-              onFilesAdded={handleFilesAdded}
-              onRemoveFile={handleRemoveFile}
-              onReorderFiles={handleReorderFiles}
-              onMerge={handleMerge}
-              loading={loading}
-              usePageRange={useCaseOptions.usePageRange}
-              onPageRangeChange={handlePageRangeChange}
-            />
+            {/* Fixed dashed border container */}
+            <div className="border-2 border-dashed border-blue-200 rounded-2xl bg-gradient-to-br from-gray-50 to-white min-h-[400px] flex items-center justify-center p-8">
+              {mergeResult ? (
+                <ResultPage result={mergeResult} onReset={handleReset} />
+              ) : (
+                <CoreToolArea
+                  files={files}
+                  onFilesAdded={handleFilesAdded}
+                  onRemoveFile={handleRemoveFile}
+                  onReorderFiles={handleReorderFiles}
+                  onMerge={handleMerge}
+                  loading={loading}
+                  usePageRange={useCaseOptions.usePageRange}
+                  onPageRangeChange={handlePageRangeChange}
+                />
+              )}
+            </div>
           </div>
         </section>
 

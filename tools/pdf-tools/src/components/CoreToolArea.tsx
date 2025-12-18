@@ -85,14 +85,14 @@ export function CoreToolArea({
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative border-2 border-dashed rounded-2xl p-16 text-center transition-all duration-300 ${
+          className={`relative border-2 border-dashed rounded-2xl py-24 px-16 text-center transition-all duration-300 ${
             isDraggingOver
               ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 scale-[1.02]'
               : 'border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-blue-400'
           }`}
         >
-          <div className="relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mb-6 shadow-lg">
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl shadow-lg mb-10">
               <svg
                 className="w-10 h-10 text-white"
                 fill="none"
@@ -128,7 +128,8 @@ export function CoreToolArea({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 border-gray-200 divide-y divide-gray-200 overflow-hidden shadow-sm">
+          {/* Card Grid Layout */}
+          <div className="flex flex-wrap items-start gap-8">
             {files.map((file, index) => (
               <div
                 key={file.id}
@@ -136,80 +137,127 @@ export function CoreToolArea({
                 onDragStart={() => handleFileDragStart(index)}
                 onDragOver={(e) => handleFileDragOver(e, index)}
                 onDragEnd={handleFileDragEnd}
-                className={`flex items-center gap-4 p-5 cursor-move hover:bg-white transition-all duration-200 ${
+                className={`relative cursor-move transition-all duration-200 ${
                   draggedIndex === index ? 'opacity-50 scale-95' : ''
                 }`}
               >
-                {/* Drag handle */}
-                <svg className="w-6 h-6 text-gray-400 hover:text-gray-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                </svg>
+                {/* Plus badge between cards */}
+                {index > 0 && (
+                  <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-light z-10">
+                    +
+                  </div>
+                )}
 
-                {/* File number */}
-                <span className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-md">
-                  {index + 1}
-                </span>
-
-                {/* File info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-gray-900 truncate">{file.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-sm text-gray-600">
-                      {file.pageCount > 0 ? `${file.pageCount} pages` : 'Analyzing...'}
-                    </p>
-                    {file.hasBookmarks && (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Bookmarks</span>
+                {/* File Card */}
+                <div className="relative bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden w-44 hover:shadow-lg transition-shadow">
+                  {/* Thumbnail / Preview Area */}
+                  <div className="h-56 bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4 relative">
+                    {/* File icon or converting status */}
+                    {file.pageCount === 0 ? (
+                      <div className="flex flex-col items-center">
+                        {/* Converting animation */}
+                        <div className="relative mb-3">
+                          <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
+                            <span className="text-2xl font-bold text-orange-500">P</span>
+                          </div>
+                          <div className="absolute -right-2 -bottom-2 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                            <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-xs text-orange-600 font-medium bg-orange-50 px-3 py-1 rounded-full">Converting...</span>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        {/* PDF Preview placeholder */}
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                      </div>
                     )}
-                    {file.isEncrypted && (
-                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">Encrypted</span>
+                  </div>
+
+                  {/* Remove button */}
+                  <button
+                    onClick={() => onRemoveFile(file.id)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-colors z-20"
+                  >
+                    <svg className="w-4 h-4 text-gray-500 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  {/* File info footer */}
+                  <div className="p-3 bg-white border-t border-gray-100">
+                    <p className="text-sm text-gray-800 truncate font-medium" title={file.name}>
+                      {file.name}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs text-gray-500">
+                        {file.pageCount > 0 ? `${file.pageCount} pages` : 'Analyzing...'}
+                      </p>
+                      {file.hasBookmarks && (
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full">📑</span>
+                      )}
+                      {file.isEncrypted && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">🔒</span>
+                      )}
+                    </div>
+
+                    {/* Page range input (if enabled) */}
+                    {usePageRange && onPageRangeChange && (
+                      <input
+                        type="text"
+                        placeholder="e.g. 1-5, all"
+                        defaultValue="all"
+                        onChange={(e) => onPageRangeChange(file.id, e.target.value)}
+                        className="w-full mt-2 px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     )}
                   </div>
                 </div>
-
-                {/* Page range input (if enabled) */}
-                {usePageRange && onPageRangeChange && (
-                  <input
-                    type="text"
-                    placeholder="e.g. 1-5, all"
-                    defaultValue="all"
-                    onChange={(e) => onPageRangeChange(file.id, e.target.value)}
-                    className="w-32 px-4 py-2 text-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                )}
-
-                {/* Remove button */}
-                <button
-                  onClick={() => onRemoveFile(file.id)}
-                  className="flex-shrink-0 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                  aria-label="Remove file"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
             ))}
-          </div>
 
-          {/* Add more files button */}
-          <label className="block cursor-pointer">
-            <input
-              type="file"
-              accept=".pdf"
-              multiple
-              onChange={handleFileInput}
-              className="hidden"
-            />
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200">
-              <span className="text-gray-600 font-medium flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add more files
-              </span>
+            {/* Add more files card */}
+            <div className="relative w-44">
+              {/* Plus badge */}
+              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-light z-10">
+                +
+              </div>
+
+              <label className="block cursor-pointer">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  multiple
+                  onChange={handleFileInput}
+                  className="hidden"
+                />
+                <div className="relative bg-white rounded-xl shadow-md border-2 border-dashed border-gray-300 overflow-hidden w-44 hover:shadow-lg hover:border-blue-400 transition-all">
+                  {/* Add file area */}
+                  <div className="h-56 bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col items-center justify-center p-4 relative">
+                    <div className="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center mb-4">
+                      <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Info footer */}
+                  <div className="p-3 bg-white border-t border-gray-100">
+                    <p className="text-sm text-blue-500 font-medium text-center leading-tight">
+                      Add PDF, image, Word, Excel, and PowerPoint files
+                    </p>
+                  </div>
+                </div>
+              </label>
             </div>
-          </label>
+          </div>
 
           {/* Merge button */}
           <button
