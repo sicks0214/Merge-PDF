@@ -65,10 +65,9 @@
 └────────────────────────────────────┘
 
 ┌────────────────────────────────────┐
-│ Use Case Sections (Accordion)      │
-│ ▼ Merge PDF for Printing           │
-│ ▼ Merge PDF Keep Bookmarks         │
-│ ▼ Merge PDF by Page Range          │
+│ Use Case Sections (Grid Cards)    │
+│ [Card 1] [Card 2] [Card 3]         │
+│ Printing | Bookmarks | Page Range  │
 └────────────────────────────────────┘
 
 ┌────────────────────────────────────┐
@@ -117,15 +116,16 @@
 
 ---
 
-## 5. Use Case Sections (使用场景折叠区)
+## 5. Use Case Sections (使用场景卡片区)
 
-使用场景通过折叠区域实现，兼顾 SEO 和用户体验。
+使用场景通过并排卡片实现，兼顾 SEO 和用户体验。
 
 ### 5.1 通用规则
 
 - **标题级别**: 使用 `<h2>` 标签
-- **默认状态**: 折叠 (collapsed)
-- **内容可见性**: 内容必须在 HTML 中存在
+- **布局方式**: 响应式网格布局 (desktop: 3列, mobile: 1列)
+- **默认状态**: 展开显示 (always visible)
+- **内容可见性**: 所有内容在 HTML 中完整存在
 - **交互行为**:
   - ❌ 不跳转页面
   - ❌ 不生成新 URL
@@ -141,12 +141,19 @@
 <h2>Merge PDF for Printing</h2>
 ```
 
-#### 展开后的内容结构
+#### 卡片内容结构
 
 ```
+Title: Merge PDF for Printing
+
 Description:
-- Optimized for print output
-- Unified paper size (A4 / Letter)
+Merge PDF for Printing lets you combine multiple PDF files into a single
+document optimized for printing...
+
+Features (列表):
+- ✓ Optimized for print output
+- ✓ Unified paper size and layout
+- ✓ Ideal for printing and offline use
 
 Action:
 [ Use this setting ]
@@ -155,9 +162,11 @@ Action:
 #### 点击行为（状态变化）
 
 ```typescript
-optimizeForPrint = true
-keepBookmarks = false
-pageRange = null
+useCaseOptions = {
+  optimizeForPrint: true,
+  keepBookmarks: false,
+  usePageRange: false
+}
 ```
 
 ---
@@ -170,11 +179,19 @@ pageRange = null
 <h2>Merge PDF Keep Bookmarks</h2>
 ```
 
-#### 展开后的内容结构
+#### 卡片内容结构
 
 ```
+Title: Merge PDF Keep Bookmarks
+
 Description:
-- Preserve bookmarks from original PDFs
+Merge PDF Keep Bookmarks lets you combine multiple PDF files while
+preserving the original bookmarks from each document...
+
+Features (列表):
+- ✓ Preserve original bookmarks
+- ✓ Maintain document structure
+- ✓ Ideal for long or structured PDFs
 
 Action:
 [ Use this setting ]
@@ -183,7 +200,10 @@ Action:
 #### 点击行为（状态变化）
 
 ```typescript
-keepBookmarks = true
+useCaseOptions = {
+  ...prevOptions,
+  keepBookmarks: true
+}
 ```
 
 ---
@@ -196,23 +216,34 @@ keepBookmarks = true
 <h2>Merge PDF by Page Range</h2>
 ```
 
-#### 展开后的内容结构
+#### 卡片内容结构
 
 ```
-Description:
-- Select specific pages from each PDF
+Title: Merge PDF by Page Range
 
-Inputs:
-- Page range input per file (e.g. 1-3,5)
+Description:
+Merge PDF by Page Range allows you to select specific pages from each
+PDF file before merging...
+
+Features (列表):
+- ✓ Select custom page ranges (e.g. 1-3, 5, 8-10)
+- ✓ Merge only required pages from each PDF
+- ✓ Reduce the final PDF file size
 
 Action:
-[ Apply ]
+[ Apply page range ]
 ```
 
 #### 点击行为（状态变化）
 
 ```typescript
-pageRange = "user-defined"
+useCaseOptions = {
+  ...prevOptions,
+  usePageRange: true
+}
+
+// 启用后，每个文件显示页面范围输入框
+// 用户可为每个文件设置: file.pageRange = "1-3,5"
 ```
 
 ---
@@ -244,46 +275,90 @@ pageRange = "user-defined"
 
 ```html
 <h2>How to Merge PDF Files</h2>
-<ol>
-  <li>Upload multiple PDF files.</li>
-  <li>Arrange files in the desired order.</li>
-  <li>Choose merge options if needed.</li>
-  <li>Click "Merge PDF" to download the result.</li>
-</ol>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="card">
+    <div class="step-number">1</div>
+    <h3>Upload PDF Files</h3>
+    <p>Select or drag and drop multiple PDF files you want to merge.</p>
+  </div>
+  <div class="card">
+    <div class="step-number">2</div>
+    <h3>Arrange Files</h3>
+    <p>Drag and drop files to reorder them in your desired sequence.</p>
+  </div>
+  <div class="card">
+    <div class="step-number">3</div>
+    <h3>Choose Options</h3>
+    <p>Optionally select merge options like keeping bookmarks or page ranges.</p>
+  </div>
+  <div class="card">
+    <div class="step-number">4</div>
+    <h3>Download Result</h3>
+    <p>Click "Merge PDF" and download your combined document instantly.</p>
+  </div>
+</div>
 ```
 
 ### 要求
 
-- 必须包含明确的步骤说明
-- 使用有序列表 `<ol>`
+- 必须包含明确的步骤说明（4个步骤）
+- 使用网格卡片布局 (2x2 grid on desktop, 1 column on mobile)
+- 每个步骤包含：编号、标题 (h3)、说明文本
 - 语言简洁清晰
 
 ---
 
 ## 8. FAQ 区块（SEO 必需）
 
-提供常见问题解答。
+提供常见问题解答，采用可折叠的交互式设计。
 
 ### HTML 结构示例
 
 ```html
-<h2>FAQ</h2>
+<h2>Frequently Asked Questions</h2>
 
-<p><strong>Is Merge PDF free?</strong><br>
-Yes, this tool is free to use.</p>
+<div class="faq-item">
+  <button class="faq-question">
+    <span class="number">1</span>
+    <span class="question-text">Is Merge PDF free?</span>
+    <svg class="chevron">...</svg>
+  </button>
+  <div class="faq-answer">
+    Yes, this tool is completely free to use. You can merge unlimited PDF files without any charges or subscriptions.
+  </div>
+</div>
 
-<p><strong>Are my files secure?</strong><br>
-All files are processed securely and deleted automatically.</p>
+<div class="faq-item">
+  <button class="faq-question">
+    <span class="number">2</span>
+    <span class="question-text">Are my files secure?</span>
+    <svg class="chevron">...</svg>
+  </button>
+  <div class="faq-answer">
+    All files are processed securely on our servers and are automatically deleted after processing...
+  </div>
+</div>
 
-<p><strong>Can I merge large PDF files?</strong><br>
-Yes, within the supported size limits.</p>
+<!-- 更多问题... -->
 ```
 
 ### 要求
 
-- 至少包含 3 个问题
-- 使用 `<strong>` 标签标记问题
-- 回答简洁明了
+- 至少包含 6 个问题（实际实现了6个）
+- 使用可折叠交互组件（点击展开/收起）
+- 默认状态为折叠
+- 问题使用加粗样式（font-semibold）
+- 回答简洁明了，支持多行文本
+- 包含编号标识（1, 2, 3...）
+
+### FAQ 内容清单
+
+1. Is Merge PDF free?
+2. Are my files secure?
+3. Can I merge large PDF files?
+4. Can I merge encrypted PDF files?
+5. Will bookmarks be preserved in the merged PDF?
+6. Can I select specific pages from each PDF?
 
 ---
 
@@ -295,40 +370,139 @@ Yes, within the supported size limits.</p>
 POST /api/pdf/merge
 ```
 
+### 请求格式
+
+使用 `multipart/form-data` 格式（非 JSON）。
+
 ### 请求参数
-
-```json
-{
-  "files": [
-    { "file": "pdf1", "pageRange": "1-3" },
-    { "file": "pdf2", "pageRange": "" }
-  ],
-  "options": {
-    "optimizeForPrint": true,
-    "keepBookmarks": false
-  }
-}
-```
-
-### 参数说明
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| files | Array | ✅ | 文件列表 |
-| files[].file | File | ✅ | PDF 文件对象 |
-| files[].pageRange | String | ❌ | 页码范围，如 "1-3,5"，空表示全部 |
-| options | Object | ❌ | 合并选项 |
-| options.optimizeForPrint | Boolean | ❌ | 是否优化打印（统一纸张大小） |
-| options.keepBookmarks | Boolean | ❌ | 是否保留书签 |
+| files | File[] | ✅ | PDF 文件数组，通过 FormData 上传 |
+| commands | String | ✅ | 命令字符串，定义合并规则和选项 |
+
+### Commands 命令字符串格式
+
+命令字符串采用类命令行语法，每行一个指令，用换行符 `\n` 分隔。
+
+**基本语法**:
+```
+<file_index>:<page_range>
+--<option_flag>
+```
+
+**示例 1：基本合并（所有页面）**
+```
+1:all
+2:all
+3:all
+```
+
+**示例 2：指定页面范围**
+```
+1:1-3
+2:5,7-10
+3:all
+```
+
+**示例 3：带选项的合并**
+```
+1:all
+2:all
+--keep-bookmarks
+--print
+```
+
+### 选项标志
+
+| 标志 | 说明 |
+|-----|------|
+| `--keep-bookmarks` | 保留原始 PDF 的书签 |
+| `--print` | 优化打印输出（移除空白页） |
+
+### 页面范围语法
+
+| 格式 | 说明 | 示例 |
+|-----|------|------|
+| `all` | 所有页面 | `1:all` |
+| `n` | 单页 | `1:3` (第3页) |
+| `m-n` | 范围 | `1:1-5` (第1-5页) |
+| `m,n` | 多个 | `1:1,3,5` (第1,3,5页) |
+| `m-n,p-q` | 组合 | `1:1-3,7-10` |
+
+### 前端发送示例
+
+```typescript
+const formData = new FormData()
+
+// 添加文件
+files.forEach((pdfFile, index) => {
+  formData.append('files', pdfFile.file, `${index + 1}_${pdfFile.name}`)
+})
+
+// 构建命令字符串
+const commands = [
+  '1:all',
+  '2:1-3',
+  '3:all',
+  '--keep-bookmarks',
+  '--print'
+].join('\n')
+
+formData.append('commands', commands)
+
+// 发送请求
+const response = await fetch('/api/pdf/merge', {
+  method: 'POST',
+  body: formData
+})
+```
+
+### 后端接收示例 (FastAPI)
+
+```python
+@app.post("/api/pdf/merge")
+async def merge(
+    files: list[UploadFile] = File(...),
+    commands: str = Form(...)
+):
+    # 解析命令字符串
+    parsed = parse_commands(commands, len(files))
+
+    # 读取文件内容
+    file_contents = [await f.read() for f in files]
+
+    # 执行合并
+    result = merge_pdfs(file_contents, parsed)
+
+    # 返回 PDF
+    return StreamingResponse(
+        io.BytesIO(result),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=merged.pdf"}
+    )
+```
 
 ### 响应
 
 ```
 Content-Type: application/pdf
-Content-Disposition: attachment; filename="merged.pdf"
+Content-Disposition: attachment; filename=merged.pdf
 
 [PDF Binary Data]
 ```
+
+### 错误响应
+
+```json
+{
+  "detail": "错误信息描述"
+}
+```
+
+HTTP 状态码:
+- `400`: 参数错误（文件格式错误、命令语法错误）
+- `500`: 服务器错误（合并失败）
 
 ---
 
@@ -338,25 +512,29 @@ Content-Disposition: attachment; filename="merged.pdf"
 
 - **一个页面**: 所有功能在单一页面实现
 - **一个工具**: 专注 PDF 合并功能
-- **多个场景**: 通过折叠区域展示不同使用场景
+- **多个场景**: 通过并排卡片展示不同使用场景
 - **固定操作区**: 核心交互区域位置固定
 
 ### SEO 优化
 
-- **折叠 ≠ 隐藏**: 内容在 HTML 中完整存在
+- **内容可见**: 所有内容在 HTML 中完整存在且默认可见
 - **场景 ≠ 新页面**: 使用状态切换而非页面跳转
-- **语义化标签**: 正确使用 H1、H2 等标题标签
+- **语义化标签**: 正确使用 H1、H2、H3 等标题标签
+- **结构化数据**: 使用有意义的 HTML 结构（卡片、列表、标题层级）
 
 ### 用户体验
 
-- **清晰反馈**: 及时的状态提示
+- **清晰反馈**: 及时的状态提示（Inline Feedback）
 - **固定锚点**: 操作区域不移动
 - **流畅交互**: 无页面刷新的状态切换
+- **直观呈现**: 使用卡片布局，所有选项一目了然
+- **响应式设计**: 适配桌面端（3列）和移动端（1列）
 
 ---
 
 ## 版本信息
 
-- **版本**: 1.0
+- **版本**: 1.1
 - **最后更新**: 2024-12
 - **维护者**: Toolibox Team
+- **更新说明**: 根据实际实现更新规范（Use Case 卡片化、命令字符串 API、交互式 FAQ）
