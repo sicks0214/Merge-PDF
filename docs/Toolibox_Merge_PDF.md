@@ -11,6 +11,7 @@
 - **SEO 友好**: 所有内容在 HTML 中存在，折叠不影响搜索引擎索引
 - **用户体验**: 清晰的状态反馈和操作流程
 - **微前端架构**: 作为 PDF Tools 微前端的子工具独立部署
+- **导航一致性**: 所有页面提供返回 Main 应用的导航入口
 
 ---
 
@@ -23,6 +24,7 @@
 | Category ID | `pdf-tools` |
 | 所属微前端 | `frontend/pdf-tools` |
 | 端口 | 3001 |
+| Main 应用地址 | `http://82.29.67.124` |
 
 ### URL 路由
 
@@ -30,6 +32,7 @@
 |------|-----|
 | 英文 | `/pdf-tools/en/merge-pdf` |
 | 中文 | `/pdf-tools/zh/merge-pdf` |
+| PDF Tools 首页 | `/pdf-tools/en` 或 `/pdf-tools/zh` |
 
 > **注意**: URL 包含语言前缀，因为微前端使用 `localePrefix: 'always'` 配置。
 
@@ -44,7 +47,7 @@ frontend/pdf-tools/
 ├── src/
 │   ├── app/
 │   │   └── [locale]/
-│   │       ├── page.tsx              # PDF Tools 首页
+│   │       ├── page.tsx              # PDF Tools 首页（含 Header/Breadcrumb）
 │   │       ├── merge-pdf/
 │   │       │   └── page.tsx          # ★ Merge PDF 页面
 │   │       ├── split-pdf/
@@ -52,12 +55,18 @@ frontend/pdf-tools/
 │   │       └── compress-pdf/
 │   │           └── page.tsx
 │   ├── components/
-│   │   └── layout/
-│   │       ├── Header.tsx
-│   │       └── Footer.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx            # 页头（Logo + 语言切换）
+│   │   │   └── Footer.tsx            # 页脚
+│   │   ├── Breadcrumb.tsx            # ★ 面包屑导航（支持外部链接）
+│   │   ├── CoreToolArea.tsx          # 核心操作区
+│   │   └── ResultPage.tsx            # 结果页面
+│   ├── lib/
+│   │   └── pdfMerger.ts              # PDF 处理逻辑
 │   └── locales/
 │       ├── en.json                   # 英文翻译
 │       └── zh.json                   # 中文翻译
+├── public/                           # ★ 静态资源目录（必须存在）
 ├── next.config.js                    # basePath: '/pdf-tools'
 └── Dockerfile
 ```
@@ -101,6 +110,8 @@ export const CATEGORY_ROUTES: Record<string, string> = {
 
 ### 2.3 导航集成
 
+#### Main 应用 → PDF Tools
+
 Main 应用通过以下方式链接到 Merge PDF：
 
 ```typescript
@@ -120,13 +131,49 @@ if (isExternal) {
 }
 ```
 
+#### PDF Tools → Main 应用（Breadcrumb 组件）
+
+PDF Tools 微前端通过 Breadcrumb 组件提供返回 Main 应用的导航：
+
+```typescript
+// Breadcrumb.tsx - 支持外部链接
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  external?: boolean;  // ★ 标记是否跳转到 Main 应用
+}
+
+const MAIN_APP_URL = 'http://82.29.67.124';
+
+// 使用示例
+const breadcrumbItems = [
+  { label: 'Home', href: '/', external: true },  // ★ 跳转到 Main 应用
+  { label: 'PDF Tools', href: '/' },              // 内部链接
+  { label: 'Merge PDF' },                         // 当前页面
+];
+```
+
+**外部链接渲染逻辑**:
+```tsx
+{item.external ? (
+  <a href={`${MAIN_APP_URL}/${locale}`}>
+    {item.label}
+  </a>
+) : (
+  <Link href={`/${locale}${item.href}`}>
+    {item.label}
+  </Link>
+)}
+```
+
 ### 2.4 导航入口位置
 
-| 入口 | 组件 | 链接方式 |
-|------|------|----------|
-| 首页热门工具 | `PopularTools.tsx` | `<a href="/pdf-tools/{locale}/merge-pdf">` |
-| PDF Tools 分类页 | `[categoryId]/page.tsx` | `<a href="/pdf-tools/{locale}/merge-pdf">` |
-| PDF Tools 微前端首页 | `pdf-tools/page.tsx` | `<Link href="/{locale}/merge-pdf">` |
+| 入口 | 组件 | 链接方式 | 目标 |
+|------|------|----------|------|
+| Main 首页热门工具 | `PopularTools.tsx` | `<a>` | → PDF Tools |
+| Main 分类页 | `[categoryId]/page.tsx` | `<a>` | → PDF Tools |
+| PDF Tools 首页 | `page.tsx` | `<Link>` | → Merge PDF |
+| PDF Tools Breadcrumb | `Breadcrumb.tsx` | `<a>` | → Main 应用 |
 
 ---
 
@@ -150,8 +197,15 @@ if (isExternal) {
 
 ```
 ┌────────────────────────────────────┐
+│ Header                              │
+│ [Logo: PDF Tools]    [EN] [中文]   │
+└────────────────────────────────────┘
+
+┌────────────────────────────────────┐
 │ Breadcrumb                          │
-│ Home / PDF Tools / Merge PDF        │
+│ Home → PDF Tools → Merge PDF        │
+│   ↑                                 │
+│   └── 跳转到 Main 应用              │
 └────────────────────────────────────┘
 
 ┌────────────────────────────────────┐
@@ -242,30 +296,6 @@ if (isExternal) {
 
 ### 6.2 Use Case 1: Merge PDF for Printing
 
-#### HTML 标记
-
-```html
-<h2>Merge PDF for Printing</h2>
-```
-
-#### 卡片内容结构
-
-```
-Title: Merge PDF for Printing
-
-Description:
-Merge PDF for Printing lets you combine multiple PDF files into a single
-document optimized for printing...
-
-Features (列表):
-- ✓ Optimized for print output
-- ✓ Unified paper size and layout
-- ✓ Ideal for printing and offline use
-
-Action:
-[ Use this setting ]
-```
-
 #### 点击行为（状态变化）
 
 ```typescript
@@ -280,30 +310,6 @@ useCaseOptions = {
 
 ### 6.3 Use Case 2: Merge PDF Keep Bookmarks
 
-#### HTML 标记
-
-```html
-<h2>Merge PDF Keep Bookmarks</h2>
-```
-
-#### 卡片内容结构
-
-```
-Title: Merge PDF Keep Bookmarks
-
-Description:
-Merge PDF Keep Bookmarks lets you combine multiple PDF files while
-preserving the original bookmarks from each document...
-
-Features (列表):
-- ✓ Preserve original bookmarks
-- ✓ Maintain document structure
-- ✓ Ideal for long or structured PDFs
-
-Action:
-[ Use this setting ]
-```
-
 #### 点击行为（状态变化）
 
 ```typescript
@@ -316,30 +322,6 @@ useCaseOptions = {
 ---
 
 ### 6.4 Use Case 3: Merge PDF by Page Range
-
-#### HTML 标记
-
-```html
-<h2>Merge PDF by Page Range</h2>
-```
-
-#### 卡片内容结构
-
-```
-Title: Merge PDF by Page Range
-
-Description:
-Merge PDF by Page Range allows you to select specific pages from each
-PDF file before merging...
-
-Features (列表):
-- ✓ Select custom page ranges (e.g. 1-3, 5, 8-10)
-- ✓ Merge only required pages from each PDF
-- ✓ Reduce the final PDF file size
-
-Action:
-[ Apply page range ]
-```
 
 #### 点击行为（状态变化）
 
@@ -378,34 +360,6 @@ useCaseOptions = {
 
 提供步骤说明，提升 SEO 和用户体验。
 
-### HTML 结构示例
-
-```html
-<h2>How to Merge PDF Files</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="card">
-    <div class="step-number">1</div>
-    <h3>Upload PDF Files</h3>
-    <p>Select or drag and drop multiple PDF files you want to merge.</p>
-  </div>
-  <div class="card">
-    <div class="step-number">2</div>
-    <h3>Arrange Files</h3>
-    <p>Drag and drop files to reorder them in your desired sequence.</p>
-  </div>
-  <div class="card">
-    <div class="step-number">3</div>
-    <h3>Choose Options</h3>
-    <p>Optionally select merge options like keeping bookmarks or page ranges.</p>
-  </div>
-  <div class="card">
-    <div class="step-number">4</div>
-    <h3>Download Result</h3>
-    <p>Click "Merge PDF" and download your combined document instantly.</p>
-  </div>
-</div>
-```
-
 ### 要求
 
 - 必须包含明确的步骤说明（4个步骤）
@@ -418,45 +372,6 @@ useCaseOptions = {
 ## 9. FAQ 区块（SEO 必需）
 
 提供常见问题解答，采用可折叠的交互式设计。
-
-### HTML 结构示例
-
-```html
-<h2>Frequently Asked Questions</h2>
-
-<div class="faq-item">
-  <button class="faq-question">
-    <span class="number">1</span>
-    <span class="question-text">Is Merge PDF free?</span>
-    <svg class="chevron">...</svg>
-  </button>
-  <div class="faq-answer">
-    Yes, this tool is completely free to use. You can merge unlimited PDF files without any charges or subscriptions.
-  </div>
-</div>
-
-<div class="faq-item">
-  <button class="faq-question">
-    <span class="number">2</span>
-    <span class="question-text">Are my files secure?</span>
-    <svg class="chevron">...</svg>
-  </button>
-  <div class="faq-answer">
-    All files are processed securely on our servers and are automatically deleted after processing...
-  </div>
-</div>
-
-<!-- 更多问题... -->
-```
-
-### 要求
-
-- 至少包含 6 个问题（实际实现了6个）
-- 使用可折叠交互组件（点击展开/收起）
-- 默认状态为折叠
-- 问题使用加粗样式（font-semibold）
-- 回答简洁明了，支持多行文本
-- 包含编号标识（1, 2, 3...）
 
 ### FAQ 内容清单
 
@@ -492,13 +407,26 @@ async function mergePDFs(files: File[]): Promise<Uint8Array> {
 }
 ```
 
-### 10.2 优势
+### 10.2 TypeScript 类型兼容性
+
+> **重要**: 在 TypeScript 5.x + Node 20 环境中，`Uint8Array` 与 `BlobPart` 可能存在类型兼容问题。
+
+**解决方案**:
+```typescript
+// ❌ 可能报错
+const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+
+// ✅ 正确写法
+const blob = new Blob([new Uint8Array(mergedPdfBytes)], { type: 'application/pdf' });
+```
+
+### 10.3 优势
 
 - **隐私安全**: 文件不上传到服务器
 - **速度快**: 无需网络传输
 - **离线可用**: 处理完全在本地完成
 
-### 10.3 依赖
+### 10.4 依赖
 
 ```json
 {
@@ -523,52 +451,6 @@ POST /api/pdf/merge
 
 使用 `multipart/form-data` 格式（非 JSON）。
 
-### 请求参数
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| files | File[] | ✅ | PDF 文件数组，通过 FormData 上传 |
-| commands | String | ✅ | 命令字符串，定义合并规则和选项 |
-
-### Commands 命令字符串格式
-
-命令字符串采用类命令行语法，每行一个指令，用换行符 `\n` 分隔。
-
-**基本语法**:
-```
-<file_index>:<page_range>
---<option_flag>
-```
-
-**示例 1：基本合并（所有页面）**
-```
-1:all
-2:all
-3:all
-```
-
-**示例 2：指定页面范围**
-```
-1:1-3
-2:5,7-10
-3:all
-```
-
-**示例 3：带选项的合并**
-```
-1:all
-2:all
---keep-bookmarks
---print
-```
-
-### 选项标志
-
-| 标志 | 说明 |
-|-----|------|
-| `--keep-bookmarks` | 保留原始 PDF 的书签 |
-| `--print` | 优化打印输出（移除空白页） |
-
 ### 页面范围语法
 
 | 格式 | 说明 | 示例 |
@@ -578,80 +460,6 @@ POST /api/pdf/merge
 | `m-n` | 范围 | `1:1-5` (第1-5页) |
 | `m,n` | 多个 | `1:1,3,5` (第1,3,5页) |
 | `m-n,p-q` | 组合 | `1:1-3,7-10` |
-
-### 前端发送示例
-
-```typescript
-const formData = new FormData()
-
-// 添加文件
-files.forEach((pdfFile, index) => {
-  formData.append('files', pdfFile.file, `${index + 1}_${pdfFile.name}`)
-})
-
-// 构建命令字符串
-const commands = [
-  '1:all',
-  '2:1-3',
-  '3:all',
-  '--keep-bookmarks',
-  '--print'
-].join('\n')
-
-formData.append('commands', commands)
-
-// 发送请求
-const response = await fetch('/api/pdf/merge', {
-  method: 'POST',
-  body: formData
-})
-```
-
-### 后端接收示例 (FastAPI)
-
-```python
-@app.post("/api/pdf/merge")
-async def merge(
-    files: list[UploadFile] = File(...),
-    commands: str = Form(...)
-):
-    # 解析命令字符串
-    parsed = parse_commands(commands, len(files))
-
-    # 读取文件内容
-    file_contents = [await f.read() for f in files]
-
-    # 执行合并
-    result = merge_pdfs(file_contents, parsed)
-
-    # 返回 PDF
-    return StreamingResponse(
-        io.BytesIO(result),
-        media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=merged.pdf"}
-    )
-```
-
-### 响应
-
-```
-Content-Type: application/pdf
-Content-Disposition: attachment; filename=merged.pdf
-
-[PDF Binary Data]
-```
-
-### 错误响应
-
-```json
-{
-  "detail": "错误信息描述"
-}
-```
-
-HTTP 状态码:
-- `400`: 参数错误（文件格式错误、命令语法错误）
-- `500`: 服务器错误（合并失败）
 
 ---
 
@@ -679,31 +487,90 @@ HTTP 状态码:
 - **直观呈现**: 使用卡片布局，所有选项一目了然
 - **响应式设计**: 适配桌面端（3列）和移动端（1列）
 
+### 导航一致性
+
+- **双向导航**: Main ↔ PDF Tools 可互相跳转
+- **面包屑导航**: 所有页面提供清晰的层级路径
+- **外部链接**: 使用 `<a>` 标签实现跨应用跳转
+- **内部链接**: 使用 `<Link>` 组件实现 SPA 导航
+
 ---
 
 ## 13. 验证清单
 
 部署后验证 Merge PDF 是否无缝接入：
 
+### Main 应用配置
 - [ ] `tools.json` 中 `comingSoon: false`
 - [ ] `DEPLOYED_MICROSERVICES` 包含 `'pdf-tools'`
-- [ ] PDF Tools 微前端服务运行中 (端口 3001)
+
+### PDF Tools 服务
+- [ ] Docker 容器运行中 (端口 3001)
 - [ ] Nginx 正确转发 `/pdf-tools/*`
-- [ ] 首页热门工具点击跳转正确
-- [ ] 分类页工具卡片点击跳转正确
+- [ ] `public/` 目录存在（Docker 构建需要）
+
+### 导航跳转
+- [ ] Main 首页 → PDF Tools 跳转正确
+- [ ] PDF Tools 首页显示 Header 和 Breadcrumb
+- [ ] PDF Tools Breadcrumb Home → Main 应用跳转正确
+- [ ] Merge PDF Breadcrumb Home → Main 应用跳转正确
 - [ ] 语言切换功能正常
+
+### 功能验证
 - [ ] 文件上传和合并功能正常
+- [ ] 合并结果可下载
+- [ ] 拖拽排序功能正常
+
+---
+
+## 14. 常见问题
+
+### Q: Docker 构建失败，提示 `/app/public` not found
+
+**原因**: Next.js standalone 模式需要 `public/` 目录存在
+
+**解决**:
+```bash
+mkdir -p frontend/pdf-tools/public
+touch frontend/pdf-tools/public/.gitkeep
+```
+
+### Q: TypeScript 编译报错 `Uint8Array` 类型不兼容
+
+**原因**: TypeScript 5.x 对 `ArrayBuffer` 类型检查更严格
+
+**解决**: 参考 [10.2 TypeScript 类型兼容性](#102-typescript-类型兼容性)
+
+### Q: 点击 Home 链接没有跳转到 Main 应用
+
+**原因**: Breadcrumb 组件未正确配置 `external` 属性
+
+**解决**: 确保 breadcrumbItems 中 Home 项有 `external: true`:
+```typescript
+{ label: 'Home', href: '/', external: true }
+```
 
 ---
 
 ## 版本信息
 
-- **版本**: 2.0
-- **最后更新**: 2025-12-20
+- **版本**: 2.1
+- **最后更新**: 2025-12-21
 - **维护者**: Toolibox Team
-- **更新说明**:
-  - 新增微前端架构集成章节
-  - 更新 URL 路由规范（包含语言前缀）
-  - 新增客户端 PDF 处理说明
-  - 新增验证清单
-  - 后端接口改为可选扩展
+
+### 更新日志
+
+#### v2.1 (2025-12-21)
+- 新增 Breadcrumb 组件 `external` 属性支持
+- PDF Tools 首页添加 Header/Breadcrumb/Footer
+- 修复 TypeScript `Uint8Array` 类型兼容问题
+- 新增 `public/` 目录说明
+- 更新导航集成章节
+- 新增常见问题章节
+
+#### v2.0 (2025-12-20)
+- 新增微前端架构集成章节
+- 更新 URL 路由规范（包含语言前缀）
+- 新增客户端 PDF 处理说明
+- 新增验证清单
+- 后端接口改为可选扩展

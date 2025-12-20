@@ -1,12 +1,31 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { Breadcrumb } from '@/components/Breadcrumb';
 
 export default function PDFToolsHome() {
   const t = useTranslations('home');
+  const params = useParams();
+  const locale = params.locale as string;
+
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Home', href: '/', external: true },
+    { label: 'PDF Tools' },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 py-16">
+      <Header />
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
+
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             {t('title')}
@@ -17,7 +36,7 @@ export default function PDFToolsHome() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Link href="./merge-pdf" className="block group">
+          <Link href={`/${locale}/merge-pdf`} className="block group">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-all duration-200 hover:scale-105">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -29,6 +48,8 @@ export default function PDFToolsHome() {
             </div>
           </Link>
         </div>
+
+        <Footer />
       </div>
     </div>
   );
