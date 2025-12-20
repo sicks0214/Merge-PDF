@@ -4,6 +4,18 @@
 
 本文档说明如何将 Merge PDF 工具部署到 VPS (82.29.67.124)，作为 Toolibox 微前端架构中的 PDF Tools 子应用。
 
+### 架构变更说明
+
+**重大变更**：新版本已从 Vite + React + 后端 API 架构迁移到 **Next.js + 客户端处理**架构：
+
+| 项目 | 旧版本 | 新版本 |
+|------|--------|--------|
+| 前端框架 | Vite + React | **Next.js 14** |
+| PDF 处理 | 服务端 PyMuPDF | **客户端 pdf-lib** |
+| 后端需求 | 需要 FastAPI 后端 | **无需后端** |
+| 国际化 | 无 | **中英文支持** |
+| 目录位置 | `tools/pdf-tools/` | **`frontend/pdf-tools/`** |
+
 ---
 
 ## 一、部署架构
@@ -19,78 +31,78 @@ Nginx (宿主机) - 82.29.67.124:80
    ├─ /                     → 127.0.0.1:3000  (Main 应用) ✅ 已部署
    ├─ /api/*                → 127.0.0.1:8000  (Main 后端) ✅ 已部署
    │
-   ├─ /pdf-tools/*          → 127.0.0.1:3001  (PDF 工具前端) ⏳ 本项目
-   └─ /api/pdf/*            → 127.0.0.1:4001  (PDF 工具后端) ⏳ 本项目
+   └─ /pdf-tools/*          → 127.0.0.1:3001  (PDF 工具前端) ⏳ 本项目
+       ├─ /pdf-tools/en/merge-pdf  (英文版)
+       └─ /pdf-tools/zh/merge-pdf  (中文版)
 ```
+
+**注意**：新版本 **不再需要后端服务**，所有 PDF 处理在浏览器端完成。
 
 ### 服务信息
 
 | 组件 | 技术栈 | 容器端口 | 宿主机端口 | 访问路径 |
 |------|--------|---------|-----------|---------|
-| 前端 | React + Vite | 80 | 3001 | /pdf-tools/* |
-| 后端 | FastAPI + PyMuPDF | 8000 | 4001 | /api/pdf/* |
+| 前端 | Next.js 14 (standalone) | 3001 | 3001 | /pdf-tools/* |
 
 ---
 
-## 二、架构调整说明
+## 二、项目结构
 
-### 已完成的架构调整
+### 新版目录结构
 
-为了融入微前端架构，项目已进行以下调整：
-
-#### 1. **端口映射调整**
-
-**修改文件**: `docker-compose.yml`
-
-```yaml
-# 前端：保持不变
-pdf-tools-frontend:
-  ports:
-    - "3001:80"  # ✅ 符合 VPS 端口规划
-
-# 后端：调整端口
-pdf-tools-backend:
-  ports:
-    - "4001:8000"  # ✅ 调整：外部 4001，内部 8000
+```
+frontend/pdf-tools/
+├── src/
+│   ├── app/
+│   │   ├── globals.css
+│   │   └── [locale]/
+│   │       ├── layout.tsx           # 国际化布局
+│   │       ├── page.tsx             # PDF Tools 首页
+│   │       └── merge-pdf/
+│   │           └── page.tsx         # Merge PDF 页面
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Header.tsx           # 页头（含语言切换）
+│   │   │   └── Footer.tsx           # 页脚
+│   │   ├── CoreToolArea.tsx         # 文件上传区域
+│   │   ├── UseCaseCards.tsx         # 使用场景卡片
+│   │   ├── HowToSection.tsx         # 使用步骤
+│   │   ├── FAQSection.tsx           # 常见问题
+│   │   └── ResultPage.tsx           # 结果页面
+│   ├── lib/
+│   │   └── pdfMerger.ts             # 客户端 PDF 处理 (pdf-lib)
+│   ├── locales/
+│   │   ├── en.json                  # 英文翻译
+│   │   └── zh.json                  # 中文翻译
+│   └── i18n/
+│       └── request.ts               # 国际化配置
+├── package.json
+├── next.config.js                   # basePath: '/pdf-tools'
+├── tailwind.config.js
+├── tsconfig.json
+└── Dockerfile
 ```
 
-**原因**: 避免与 Main 应用后端（端口 8000）冲突
+### 关键配置
 
-#### 2. **移除独立 Nginx 容器**
+**next.config.js**:
+```javascript
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
-**修改**: 删除 `docker-compose.yml` 中的 nginx 服务
+const nextConfig = {
+  basePath: '/pdf-tools',
+  output: 'standalone',
+};
 
-**原因**: VPS 使用宿主机 Nginx 统一管理所有流量路由
-
-#### 3. **更新开发代理配置**
-
-**修改文件**: `tools/pdf-tools/vite.config.ts`
-
-```typescript
-server: {
-  proxy: {
-    '/api': {
-      target: 'http://localhost:4001',  // ✅ 更新：从 8000 改为 4001
-      changeOrigin: true,
-    },
-  },
-}
+module.exports = withNextIntl(nextConfig);
 ```
-
-### 无需调整的配置
-
-以下配置已完美匹配 VPS 架构，无需修改：
-
-- ✅ 前端基础路径：`base: '/pdf-tools/'` (vite.config.ts)
-- ✅ API 基础路径：`const API_BASE = '/api/pdf'` (merge.ts)
-- ✅ 后端路由定义：`@app.post("/api/pdf/analyze")` (main.py)
-- ✅ 前端容器端口：3001
 
 ---
 
 ## 三、VPS Nginx 配置
 
-### 宿主机 Nginx 已预留配置
+### 宿主机 Nginx 配置（简化版）
 
 **位置**: `/etc/nginx/sites-available/toolibox.conf`
 
@@ -112,28 +124,25 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-    # PDF 工具（待部署）
+    # PDF 工具（Next.js 应用）
     location /pdf-tools/ {
-        proxy_pass http://127.0.0.1:3001/;
+        proxy_pass http://127.0.0.1:3001/pdf-tools/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /api/pdf/ {
-        proxy_pass http://127.0.0.1:4001/api/pdf/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        client_max_body_size 100M;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
     }
 }
 ```
 
-**注意事项**：
-- ✅ 宿主机 Nginx 配置已就绪，**无需修改**
-- ✅ 路径配置已预留，只需启动容器即可生效
-- ✅ `client_max_body_size 100M` 已配置，支持大文件上传
+**变更说明**：
+- ✅ 移除了 `/api/pdf/*` 路由配置（不再需要后端）
+- ✅ 简化了 proxy 配置
+- ✅ 添加了 WebSocket 支持（Next.js 开发模式需要）
 
 ---
 
@@ -147,12 +156,8 @@ server {
 # 进入项目目录
 cd E:\codelibrary\Merge-PDF
 
-# 打包项目文件（排除不需要的文件）
-tar -czf merge-pdf.tar.gz \
-  tools/pdf-tools \
-  backend/services/pdf-tools \
-  docker-compose.yml \
-  docs/
+# 打包项目文件
+tar -czf merge-pdf.tar.gz frontend/pdf-tools docs/
 
 # 上传到 VPS
 scp merge-pdf.tar.gz toolibox@82.29.67.124:/var/www/toolibox/
@@ -171,11 +176,12 @@ cd /var/www/toolibox
 tar -xzf merge-pdf.tar.gz
 
 # 验证文件结构
-ls -la
+ls -la frontend/pdf-tools/
 # 应该看到：
-# - tools/pdf-tools/
-# - backend/services/pdf-tools/
-# - docker-compose.yml
+# - src/
+# - package.json
+# - next.config.js
+# - Dockerfile
 ```
 
 ### 步骤 3：构建 Docker 镜像
@@ -184,85 +190,99 @@ ls -la
 cd /var/www/toolibox
 
 # 构建前端镜像
-docker build -t toolibox/frontend-pdf ./tools/pdf-tools
-
-# 构建后端镜像
-docker build -t toolibox/backend-pdf ./backend/services/pdf-tools
+docker build -t toolibox/pdf-tools ./frontend/pdf-tools
 
 # 验证镜像构建成功
-docker images | grep pdf
+docker images | grep pdf-tools
 ```
 
 **预期输出**：
 ```
-toolibox/frontend-pdf    latest    abc123    200MB
-toolibox/backend-pdf     latest    def456    150MB
+toolibox/pdf-tools    latest    abc123    ~300MB
 ```
 
-**构建时间估计**：
-- 前端：2-3 分钟（Node.js 依赖 + Vite 构建）
-- 后端：1-2 分钟（Python 依赖 + PyMuPDF）
+**构建时间估计**：3-5 分钟（Next.js 构建 + standalone 输出）
 
-### 步骤 4：启动容器
+### 步骤 4：创建 docker-compose.yml
+
+在 `/var/www/toolibox/` 创建或更新 `docker-compose.yml`：
+
+```yaml
+version: '3.8'
+
+services:
+  pdf-tools:
+    image: toolibox/pdf-tools
+    container_name: pdf-tools
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+```
+
+### 步骤 5：启动容器
 
 ```bash
 # 启动 PDF 工具服务
-docker compose up -d pdf-tools-frontend pdf-tools-backend
+docker compose up -d pdf-tools
 
 # 查看运行状态
 docker ps
 
 # 应该看到：
-# CONTAINER ID   IMAGE                      STATUS
-# abc123         toolibox/frontend-pdf      Up X seconds
-# def456         toolibox/backend-pdf       Up X seconds
+# CONTAINER ID   IMAGE                 STATUS         PORTS
+# abc123         toolibox/pdf-tools    Up X seconds   0.0.0.0:3001->3001/tcp
 
 # 查看容器日志
-docker compose logs -f pdf-tools-frontend
-docker compose logs -f pdf-tools-backend
+docker compose logs -f pdf-tools
 ```
 
-### 步骤 5：验证部署
+### 步骤 6：验证部署
 
-#### 5.1 检查容器状态
+#### 6.1 检查容器状态
 
 ```bash
 # 检查容器是否运行
 docker ps | grep pdf-tools
 
 # 检查端口监听
-sudo netstat -tlnp | grep -E '3001|4001'
+sudo netstat -tlnp | grep 3001
 ```
 
-#### 5.2 测试本地访问
+#### 6.2 测试本地访问
 
 ```bash
 # 测试前端（应该返回 HTML）
-curl http://127.0.0.1:3001/
+curl http://127.0.0.1:3001/pdf-tools/en/merge-pdf
 
-# 测试后端健康检查
-curl http://127.0.0.1:4001/health
-# 预期输出: {"status":"ok"}
-
-# 测试后端 API
-curl http://127.0.0.1:4001/api/pdf/health
+# 测试中文版
+curl http://127.0.0.1:3001/pdf-tools/zh/merge-pdf
 ```
 
-#### 5.3 测试外部访问
+#### 6.3 测试外部访问
 
 ```bash
-# 通过 Nginx 访问前端
-curl http://82.29.67.124/pdf-tools/
-
-# 通过 Nginx 访问后端
-curl http://82.29.67.124/api/pdf/health
+# 通过 Nginx 访问
+curl http://82.29.67.124/pdf-tools/en/merge-pdf
+curl http://82.29.67.124/pdf-tools/zh/merge-pdf
 ```
 
-#### 5.4 浏览器测试
+#### 6.4 浏览器测试
 
 打开浏览器访问：
-- 前端页面: `http://82.29.67.124/pdf-tools/`
-- 测试上传和合并功能
+- 英文版: `http://82.29.67.124/pdf-tools/en/merge-pdf`
+- 中文版: `http://82.29.67.124/pdf-tools/zh/merge-pdf`
+
+功能测试：
+1. ✅ 页面正常显示
+2. ✅ 语言切换正常
+3. ✅ 上传 PDF 文件
+4. ✅ 拖拽排序文件
+5. ✅ 选择使用场景（打印优化/保留书签/页面范围）
+6. ✅ 合并 PDF 文件
+7. ✅ 下载合并后的 PDF
 
 ---
 
@@ -282,97 +302,62 @@ curl http://82.29.67.124/api/pdf/health
 docker ps -a | grep pdf-tools
 
 # 查看容器日志
-docker compose logs pdf-tools-frontend
-docker compose logs pdf-tools-backend
+docker compose logs pdf-tools
 
 # 重启容器
-docker compose restart pdf-tools-frontend pdf-tools-backend
+docker compose restart pdf-tools
 ```
 
-### 问题 2：API 请求失败
+### 问题 2：页面空白或样式错乱
 
-**症状**: 前端无法调用后端 API
-
-**可能原因**:
-- 后端容器未运行
-- 端口配置错误
-- Nginx 配置问题
-
-**解决方法**:
-```bash
-# 检查后端是否响应
-curl http://127.0.0.1:4001/health
-
-# 检查 Nginx 配置
-sudo nginx -t
-
-# 查看 Nginx 日志
-sudo tail -f /var/log/nginx/error.log
-sudo tail -f /var/log/nginx/access.log
-
-# 检查后端日志
-docker compose logs -f pdf-tools-backend
-```
-
-### 问题 3：文件上传失败
-
-**症状**: 上传 PDF 文件时报错
+**症状**: 页面打开但无内容，或 CSS/JS 404
 
 **可能原因**:
-- 文件大小超过限制
-- Nginx 上传限制未配置
-
-**解决方法**:
-```bash
-# 确认 Nginx 配置包含：
-cat /etc/nginx/sites-available/toolibox.conf | grep client_max_body_size
-# 应该看到: client_max_body_size 100M;
-
-# 如果没有，添加配置并重载
-sudo nano /etc/nginx/sites-available/toolibox.conf
-# 在 location /api/pdf/ 块中添加：
-# client_max_body_size 100M;
-
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 问题 4：前端资源加载失败
-
-**症状**: 页面打开但样式错乱，JS 文件 404
-
-**可能原因**:
-- 基础路径配置错误
+- basePath 配置问题
 - Nginx 代理配置问题
 
 **解决方法**:
 ```bash
-# 检查前端容器配置
-docker exec -it merge-pdf-pdf-tools-frontend-1 cat /etc/nginx/conf.d/default.conf
-
-# 检查 vite 构建输出
-docker exec -it merge-pdf-pdf-tools-frontend-1 ls -la /usr/share/nginx/html/
+# 检查 Nginx 配置
+sudo nginx -t
 
 # 查看浏览器控制台，确认资源请求路径
-# 正确的资源路径应该是：/pdf-tools/assets/...
+# 正确的资源路径应该是：/pdf-tools/_next/static/...
+
+# 检查 Nginx 错误日志
+sudo tail -f /var/log/nginx/error.log
 ```
 
-### 问题 5：容器启动失败
+### 问题 3：语言切换不工作
 
-**症状**: `docker compose up` 后容器立即退出
+**症状**: 点击语言切换无响应或 404
+
+**可能原因**:
+- 国际化配置问题
+- 路由配置问题
 
 **解决方法**:
 ```bash
-# 查看详细日志
-docker compose logs pdf-tools-frontend
-docker compose logs pdf-tools-backend
+# 直接访问测试
+curl http://127.0.0.1:3001/pdf-tools/en/merge-pdf
+curl http://127.0.0.1:3001/pdf-tools/zh/merge-pdf
 
-# 检查镜像构建是否成功
-docker images | grep pdf
-
-# 重新构建镜像
-docker compose build --no-cache pdf-tools-frontend
-docker compose build --no-cache pdf-tools-backend
+# 查看容器日志
+docker compose logs -f pdf-tools
 ```
+
+### 问题 4：PDF 合并失败
+
+**症状**: 上传文件后合并报错
+
+**可能原因**:
+- 浏览器不支持（需要现代浏览器）
+- 文件过大导致内存不足
+
+**解决方法**:
+- 使用 Chrome/Firefox/Edge 最新版本
+- 减少单次合并的文件数量或大小
+- 检查浏览器控制台错误信息
 
 ---
 
@@ -385,17 +370,16 @@ docker compose build --no-cache pdf-tools-backend
 docker ps | grep pdf-tools
 
 # 查看实时日志
-docker compose logs -f pdf-tools-frontend pdf-tools-backend
+docker compose logs -f pdf-tools
 
 # 重启服务
-docker compose restart pdf-tools-frontend
-docker compose restart pdf-tools-backend
+docker compose restart pdf-tools
 
 # 停止服务
-docker compose stop pdf-tools-frontend pdf-tools-backend
+docker compose stop pdf-tools
 
 # 启动服务
-docker compose start pdf-tools-frontend pdf-tools-backend
+docker compose start pdf-tools
 ```
 
 ### 更新部署
@@ -409,35 +393,34 @@ cd /var/www/toolibox
 tar -xzf merge-pdf.tar.gz
 
 # 3. 重新构建镜像
-docker compose build pdf-tools-frontend pdf-tools-backend
+docker build -t toolibox/pdf-tools ./frontend/pdf-tools
 
-# 4. 重启容器（零停机更新）
-docker compose up -d --no-deps pdf-tools-frontend
-docker compose up -d --no-deps pdf-tools-backend
+# 4. 重启容器
+docker compose up -d --force-recreate pdf-tools
 
 # 5. 验证更新
 docker ps | grep pdf-tools
-curl http://82.29.67.124/pdf-tools/
+curl http://82.29.67.124/pdf-tools/en/merge-pdf
 ```
 
 ### 日志管理
 
 ```bash
 # 查看最近 100 行日志
-docker compose logs --tail=100 pdf-tools-backend
+docker compose logs --tail=100 pdf-tools
 
 # 查看特定时间段日志
-docker compose logs --since=2h pdf-tools-backend
+docker compose logs --since=2h pdf-tools
 
 # 导出日志到文件
-docker compose logs pdf-tools-backend > backend.log
+docker compose logs pdf-tools > pdf-tools.log
 ```
 
 ### 资源监控
 
 ```bash
 # 查看容器资源使用
-docker stats merge-pdf-pdf-tools-frontend-1 merge-pdf-pdf-tools-backend-1
+docker stats pdf-tools
 
 # 查看磁盘使用
 docker system df
@@ -450,32 +433,19 @@ docker image prune -a
 
 ## 七、性能优化
 
-### Docker 镜像优化
-
-当前镜像已采用多阶段构建：
-
-**前端 Dockerfile**:
-- Builder 阶段：Node.js 编译
-- Runner 阶段：仅包含静态文件
-- 最终大小：~200MB
-
-**后端 Dockerfile**:
-- 基于 Python 3.12-slim
-- 仅安装必要依赖
-- 最终大小：~150MB
-
 ### Nginx 缓存配置
 
 可以在宿主机 Nginx 中添加静态资源缓存：
 
 ```nginx
 location /pdf-tools/ {
-    proxy_pass http://127.0.0.1:3001/;
+    proxy_pass http://127.0.0.1:3001/pdf-tools/;
+    # ... 其他配置 ...
 
-    # 添加缓存头
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2)$ {
-        proxy_pass http://127.0.0.1:3001;
-        expires 30d;
+    # 静态资源缓存
+    location /pdf-tools/_next/static/ {
+        proxy_pass http://127.0.0.1:3001/pdf-tools/_next/static/;
+        expires 365d;
         add_header Cache-Control "public, immutable";
     }
 }
@@ -486,14 +456,8 @@ location /pdf-tools/ {
 可以在 `docker-compose.yml` 中添加资源限制：
 
 ```yaml
-pdf-tools-frontend:
-  deploy:
-    resources:
-      limits:
-        cpus: '0.5'
-        memory: 256M
-
-pdf-tools-backend:
+pdf-tools:
+  image: toolibox/pdf-tools
   deploy:
     resources:
       limits:
@@ -503,65 +467,70 @@ pdf-tools-backend:
 
 ---
 
-## 八、安全建议
+## 八、安全说明
 
-1. **文件上传限制**
-   - 已配置 100MB 限制
-   - 后端验证文件类型
+### 隐私保护
 
-2. **CORS 配置**
-   - 生产环境建议限制来源域名
-   - 当前允许所有来源（开发便利）
+✅ **客户端处理**：所有 PDF 文件在用户浏览器中处理，**不会上传到服务器**
 
-3. **日志记录**
-   - 启用访问日志
-   - 记录错误信息
-   - 定期清理日志
+这意味着：
+- 用户文件保持私密
+- 无需担心数据泄露
+- 服务器不存储任何用户文件
 
-4. **防火墙配置**
-   ```bash
-   # 确认端口 3001, 4001 不对外开放
-   sudo ufw status
-   # 应该只看到 22, 80, 443 端口开放
-   ```
+### 防火墙配置
+
+```bash
+# 确认端口 3001 不对外直接开放（只通过 Nginx 代理）
+sudo ufw status
+# 应该只看到 22, 80, 443 端口开放
+```
 
 ---
 
 ## 九、架构优势总结
 
+✅ **无后端依赖**
+- 不再需要 FastAPI 后端
+- 减少服务器资源消耗
+- 简化部署和运维
+
+✅ **隐私安全**
+- PDF 文件在浏览器本地处理
+- 不上传到服务器
+
+✅ **国际化支持**
+- 中英文双语
+- URL 包含语言前缀
+- 易于扩展更多语言
+
 ✅ **模块化部署**
-- PDF 工具独立运行，不影响 Main 应用
+- PDF 工具独立运行
+- 不影响 Main 应用
 - 可随时启动/停止/更新
 
-✅ **路径隔离**
-- `/pdf-tools/*` 前端路径独立
-- `/api/pdf/*` API 路径独立
-
-✅ **技术栈灵活**
-- 前端：React + Vite（轻量级）
-- 后端：FastAPI + PyMuPDF（专业 PDF 处理）
-- 与 Main 应用（Next.js + Express）互补
-
-✅ **易于扩展**
-- 未来可添加更多 PDF 工具（拆分、压缩等）
-- 遵循相同的部署模式
+✅ **Next.js 优势**
+- SSR 支持，SEO 友好
+- standalone 输出，镜像更小
+- 内置路由和国际化
 
 ---
 
 ## 十、部署检查清单
 
 部署前确认：
-- [ ] docker-compose.yml 端口配置为 3001 和 4001
-- [ ] docker-compose.yml 已删除 nginx 服务
-- [ ] vite.config.ts 代理配置为 4001
-- [ ] VPS 宿主机 Nginx 配置已就绪
+- [ ] `frontend/pdf-tools/` 目录存在
+- [ ] `next.config.js` 配置 `basePath: '/pdf-tools'`
+- [ ] `Dockerfile` 使用 standalone 模式
+- [ ] VPS 宿主机 Nginx 配置已更新
 
 部署后验证：
 - [ ] 容器正常运行 (`docker ps`)
-- [ ] 端口正确监听 (`netstat -tlnp`)
-- [ ] 前端可访问 (`curl http://82.29.67.124/pdf-tools/`)
-- [ ] 后端 API 可用 (`curl http://82.29.67.124/api/pdf/health`)
+- [ ] 端口正确监听 (`netstat -tlnp | grep 3001`)
+- [ ] 英文版可访问 (`curl http://82.29.67.124/pdf-tools/en/merge-pdf`)
+- [ ] 中文版可访问 (`curl http://82.29.67.124/pdf-tools/zh/merge-pdf`)
 - [ ] 浏览器功能测试（上传、合并、下载）
+- [ ] 语言切换正常
 
 ---
 
@@ -569,10 +538,22 @@ pdf-tools-backend:
 
 - **VPS IP**: 82.29.67.124
 - **SSH 用户**: toolibox
-- **项目目录**: /var/www/toolibox/
-- **前端容器端口**: 3001
-- **后端容器端口**: 4001
+- **项目目录**: /var/www/toolibox/frontend/pdf-tools/
+- **容器端口**: 3001
 - **Nginx 配置**: /etc/nginx/sites-available/toolibox.conf
+
+---
+
+## 版本信息
+
+- **版本**: 2.0
+- **最后更新**: 2025-12-20
+- **主要变更**:
+  - 迁移到 Next.js 14 框架
+  - 实现客户端 PDF 处理（pdf-lib）
+  - 添加中英文国际化支持
+  - 移除后端服务依赖
+  - 简化部署架构
 
 ---
 
