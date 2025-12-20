@@ -55,7 +55,7 @@ export function FAQSection() {
   return (
     <section className="mt-16">
       <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('title')}</h2>
-      <div className="space-y-3 max-w-3xl mx-auto">
+      <div className="space-y-3">
         {faqs.map((faq, index) => (
           <FAQItem
             key={index}
