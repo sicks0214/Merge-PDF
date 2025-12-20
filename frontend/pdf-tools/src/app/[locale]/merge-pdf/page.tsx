@@ -29,7 +29,7 @@ export default function MergePDFPage() {
 
   // Breadcrumb items
   const breadcrumbItems = [
-    { label: t('breadcrumb.home'), href: '/' },
+    { label: t('breadcrumb.home'), href: '/', external: true },
     { label: t('breadcrumb.pdfTools'), href: '/' },
     { label: t('breadcrumb.mergePdf') },
   ];
@@ -137,7 +137,7 @@ export default function MergePDFPage() {
       });
 
       // Create blob
-      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([new Uint8Array(mergedPdfBytes)], { type: 'application/pdf' });
 
       // Calculate total page count
       const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0);

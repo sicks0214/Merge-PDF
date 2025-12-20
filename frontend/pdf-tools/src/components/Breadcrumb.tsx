@@ -6,11 +6,15 @@ import { useParams } from 'next/navigation';
 interface BreadcrumbItem {
   label: string;
   href?: string;
+  external?: boolean;  // 标记是否为外部链接（跳转到 Main 应用）
 }
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
+
+// Main 应用的基础 URL
+const MAIN_APP_URL = 'http://82.29.67.124';
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
   const params = useParams();
@@ -27,12 +31,21 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
               </svg>
             )}
             {item.href ? (
-              <Link
-                href={item.href.startsWith('/') ? `/${locale}${item.href}` : item.href}
-                className="hover:text-blue-600 transition-colors"
-              >
-                {item.label}
-              </Link>
+              item.external ? (
+                <a
+                  href={`${MAIN_APP_URL}/${locale}${item.href === '/' ? '' : item.href}`}
+                  className="hover:text-blue-600 transition-colors"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  href={`/${locale}${item.href}`}
+                  className="hover:text-blue-600 transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )
             ) : (
               <span className="text-gray-900 font-medium">{item.label}</span>
             )}
