@@ -1,16 +1,11 @@
 services:
-  pdf-tools-frontend:
+  pdf-tools:
     build:
-      context: ./tools/pdf-tools
+      context: ./frontend/pdf-tools
       dockerfile: Dockerfile
     ports:
-      - "3001:80"
-    restart: unless-stopped
-
-  pdf-tools-backend:
-    build:
-      context: ./backend/services/pdf-tools
-      dockerfile: Dockerfile
-    ports:
-      - "4001:8000"
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
     restart: unless-stopped
