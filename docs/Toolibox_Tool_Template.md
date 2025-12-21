@@ -214,6 +214,8 @@ CMD ["node", "server.js"]
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { CoreToolArea } from '@/components/CoreToolArea';
 import { UseCaseCards } from '@/components/UseCaseCards';
@@ -236,6 +238,8 @@ export default function ToolPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <Header />
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Breadcrumb items={breadcrumbItems} />
 
@@ -249,6 +253,8 @@ export default function ToolPage() {
         <HowToSection />
         <FAQSection />
       </div>
+
+      <Footer />
     </div>
   );
 }
@@ -264,29 +270,135 @@ export default function ToolPage() {
 - 支持 `external` 属性标记外部链接
 - 外部链接使用 `<a>` 标签跳转到 Main 应用
 - 内部链接使用 `<Link>` 组件
+- 使用 `useParams()` 获取当前语言
 
 ```typescript
+'use client';
+
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
   external?: boolean;  // ★ 标记是否跳转到 Main 应用
 }
 
+interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+}
+
 const MAIN_APP_URL = 'http://82.29.67.124';
 
-// 渲染逻辑
-{item.external ? (
-  <a href={`${MAIN_APP_URL}/${locale}${item.href === '/' ? '' : item.href}`}>
-    {item.label}
-  </a>
-) : (
-  <Link href={`/${locale}${item.href}`}>
-    {item.label}
-  </Link>
-)}
+export function Breadcrumb({ items }: BreadcrumbProps) {
+  const params = useParams();
+  const locale = params.locale as string;
+
+  return (
+    <nav className="mb-6">
+      <ol className="flex items-center gap-2 text-sm text-gray-600">
+        {items.map((item, index) => (
+          <li key={index} className="flex items-center gap-2">
+            {index > 0 && (
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            )}
+            {item.href ? (
+              item.external ? (
+                <a
+                  href={`${MAIN_APP_URL}/${locale}${item.href === '/' ? '' : item.href}`}
+                  className="hover:text-blue-600 transition-colors"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  href={`/${locale}${item.href}`}
+                  className="hover:text-blue-600 transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )
+            ) : (
+              <span className="text-gray-900 font-medium">{item.label}</span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
 ```
 
-### 7.2 CoreToolArea 组件（必需）
+### 7.2 Header 组件（必需）
+
+**关键点**:
+- Logo 链接到分类首页
+- 语言切换使用 `<Link>` 组件
+- 使用 `useParams()` 和 `usePathname()` 处理语言切换
+
+```typescript
+'use client';
+
+import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
+
+export function Header() {
+  const params = useParams();
+  const pathname = usePathname();
+  const currentLocale = params.locale as string;
+
+  const switchLocale = (newLocale: string) => {
+    const segments = pathname.split('/');
+    segments[1] = newLocale;
+    return segments.join('/');
+  };
+
+  return (
+    <header className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <Link href={`/${currentLocale}`} className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            [Category Name]
+          </span>
+        </Link>
+
+        {/* Language Switcher */}
+        <div className="flex items-center gap-2">
+          <Link
+            href={switchLocale('en')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              currentLocale === 'en'
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            EN
+          </Link>
+          <Link
+            href={switchLocale('zh')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              currentLocale === 'zh'
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            中文
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+### 7.3 CoreToolArea 组件（必需）
 
 **必须包含**:
 1. 文件上传/输入区域
@@ -298,7 +410,7 @@ const MAIN_APP_URL = 'http://82.29.67.124';
 - 支持拖拽上传（使用 react-dropzone）
 - 显示处理状态（loading）
 
-### 7.3 UseCaseCards 组件（必需）
+### 7.4 UseCaseCards 组件（必需）
 
 **设计要求**:
 - 3列网格布局（桌面端）
@@ -306,14 +418,14 @@ const MAIN_APP_URL = 'http://82.29.67.124';
 - 点击卡片切换状态，不跳转页面
 - 所有内容默认可见（SEO）
 
-### 7.4 HowToSection 组件（必需）
+### 7.5 HowToSection 组件（必需）
 
 **SEO 要求**:
 - 3-5个步骤说明
 - 使用 `<h3>` 标签
 - 网格卡片布局
 
-### 7.5 FAQSection 组件（必需）
+### 7.6 FAQSection 组件（必需）
 
 **SEO 要求**:
 - 至少6个常见问题
