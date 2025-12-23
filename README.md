@@ -81,6 +81,7 @@ docker compose up -d --build
 | 端点 | 方法 | 说明 |
 |------|------|------|
 | `/api/health` | GET | 健康检查 |
+| `/api/pdf/analyze` | POST | PDF 分析（页数、加密状态） |
 | `/api/pdf/merge` | POST | PDF 合并 |
 
 ## 环境变量
@@ -109,6 +110,10 @@ NODE_ENV=production
 - **版本**: 3.0
 - **架构**: 微前端 + 后端 API
 - **最后更新**: 2025-12-23
+
+## 部署说明
+
+详细部署步骤请参考 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## License
 

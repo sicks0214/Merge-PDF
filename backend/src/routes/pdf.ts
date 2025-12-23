@@ -38,6 +38,41 @@ function parsePageRange(range: string, totalPages: number): number[] {
   return pages.sort((a, b) => a - b);
 }
 
+router.post('/analyze', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = req.file as Express.Multer.File;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const pdf = await PDFDocument.load(file.buffer, {
+      ignoreEncryption: true,
+    });
+
+    const pageCount = pdf.getPageCount();
+
+    res.json({
+      pageCount,
+      hasBookmarks: false,
+      isEncrypted: false,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('encrypted')) {
+      return res.json({
+        pageCount: 0,
+        hasBookmarks: false,
+        isEncrypted: true,
+      });
+    }
+    console.error('Analyze error:', error);
+    res.status(500).json({
+      message: 'Analysis failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 router.post('/merge', upload.array('files', 20), async (req: Request, res: Response) => {
   try {
     const files = req.files as Express.Multer.File[];

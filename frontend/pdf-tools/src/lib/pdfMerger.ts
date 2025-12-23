@@ -1,5 +1,3 @@
-import { PDFDocument } from 'pdf-lib';
-
 /**
  * Analyze a PDF file to get its metadata
  */
@@ -8,30 +6,20 @@ export async function analyzePDF(file: File): Promise<{
   hasBookmarks: boolean;
   isEncrypted: boolean;
 }> {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await PDFDocument.load(arrayBuffer, {
-      ignoreEncryption: true,
-    });
+  const formData = new FormData();
+  formData.append('file', file);
 
-    const pageCount = pdf.getPageCount();
-    const hasBookmarks = false;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+  const response = await fetch(`${API_BASE}/pdf/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
 
-    return {
-      pageCount,
-      hasBookmarks,
-      isEncrypted: false,
-    };
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('encrypted')) {
-      return {
-        pageCount: 0,
-        hasBookmarks: false,
-        isEncrypted: true,
-      };
-    }
-    throw error;
+  if (!response.ok) {
+    throw new Error('Failed to analyze PDF');
   }
+
+  return response.json();
 }
 
 /**
