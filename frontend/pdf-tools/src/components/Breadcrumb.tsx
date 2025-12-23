@@ -13,8 +13,8 @@ interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
-// Main 应用的基础 URL
-const MAIN_APP_URL = 'http://82.29.67.124';
+// Main 应用的基础 URL（生产环境通过 Nginx 代理，使用相对路径）
+const MAIN_APP_URL = process.env.NEXT_PUBLIC_MAIN_APP_URL || '';
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
   const params = useParams();

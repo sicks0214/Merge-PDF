@@ -11,7 +11,8 @@ import { UseCaseCards } from '@/components/UseCaseCards';
 import { HowToSection } from '@/components/HowToSection';
 import { FAQSection } from '@/components/FAQSection';
 import { ResultPage } from '@/components/ResultPage';
-import { analyzePDF, mergePDFs, formatFileSize } from '@/lib/pdfMerger';
+import { analyzePDF, formatFileSize } from '@/lib/pdfMerger';
+import { mergePDFsAPI } from '@/lib/api';
 import type { PDFFile, MergeResult, UseCaseOptions } from '@/types';
 
 export default function MergePDFPage() {
@@ -129,15 +130,12 @@ export default function MergePDFPage() {
     setFeedback(null);
 
     try {
-      // Call client-side merge function
-      const mergedPdfBytes = await mergePDFs(files, {
+      // Call backend API
+      const blob = await mergePDFsAPI(files, {
         keepBookmarks: useCaseOptions.keepBookmarks,
         optimizeForPrint: useCaseOptions.optimizeForPrint,
         usePageRange: useCaseOptions.usePageRange,
       });
-
-      // Create blob
-      const blob = new Blob([new Uint8Array(mergedPdfBytes)], { type: 'application/pdf' });
 
       // Calculate total page count
       const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0);
