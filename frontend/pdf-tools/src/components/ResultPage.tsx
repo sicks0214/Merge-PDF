@@ -1,17 +1,15 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { downloadBlob } from '@/lib/pdfMerger';
-import type { MergeResult } from '@/types';
+import type { MergeResult, PluginUI } from '@/types';
 
 interface ResultPageProps {
   result: MergeResult;
   onReset: () => void;
+  ui: PluginUI;
 }
 
-export function ResultPage({ result, onReset }: ResultPageProps) {
-  const t = useTranslations('mergePdf');
-
+export function ResultPage({ result, onReset, ui }: ResultPageProps) {
   const handleDownload = () => {
     downloadBlob(result.blob, result.fileName);
   };
@@ -24,20 +22,20 @@ export function ResultPage({ result, onReset }: ResultPageProps) {
         </svg>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('result.title')}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">{ui.result?.title || 'PDF Merged Successfully!'}</h2>
 
       <div className="bg-gray-50 rounded-xl p-6 mb-6 max-w-md mx-auto">
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-gray-600">{t('result.fileName')}</span>
+            <span className="text-gray-600">{ui.result?.fileName || 'File name'}</span>
             <span className="font-medium text-gray-900">{result.fileName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">{t('result.fileSize')}</span>
+            <span className="text-gray-600">{ui.result?.fileSize || 'File size'}</span>
             <span className="font-medium text-gray-900">{result.fileSize}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">{t('result.pageCount')}</span>
+            <span className="text-gray-600">{ui.result?.pageCount || 'Total pages'}</span>
             <span className="font-medium text-gray-900">{result.pageCount}</span>
           </div>
         </div>
@@ -51,13 +49,13 @@ export function ResultPage({ result, onReset }: ResultPageProps) {
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          {t('actions.download')}
+          {ui.actions?.download || 'Download Merged PDF'}
         </button>
         <button
           onClick={onReset}
           className="px-8 py-4 bg-gray-100 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-200 transition-all duration-200"
         >
-          {t('actions.startOver')}
+          {ui.actions?.startOver || 'Start Over'}
         </button>
       </div>
     </div>

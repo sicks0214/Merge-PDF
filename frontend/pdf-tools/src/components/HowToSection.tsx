@@ -1,20 +1,22 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import type { PluginUI } from '@/types';
 
-export function HowToSection() {
-  const t = useTranslations('mergePdf.howTo');
+interface HowToSectionProps {
+  ui: PluginUI;
+}
 
+export function HowToSection({ ui }: HowToSectionProps) {
   const steps = [
-    { number: 1, title: t('step1.title'), description: t('step1.description') },
-    { number: 2, title: t('step2.title'), description: t('step2.description') },
-    { number: 3, title: t('step3.title'), description: t('step3.description') },
-    { number: 4, title: t('step4.title'), description: t('step4.description') },
+    { number: 1, title: ui.howTo?.step1?.title || 'Step 1', description: ui.howTo?.step1?.description || '' },
+    { number: 2, title: ui.howTo?.step2?.title || 'Step 2', description: ui.howTo?.step2?.description || '' },
+    { number: 3, title: ui.howTo?.step3?.title || 'Step 3', description: ui.howTo?.step3?.description || '' },
+    { number: 4, title: ui.howTo?.step4?.title || 'Step 4', description: ui.howTo?.step4?.description || '' },
   ];
 
   return (
     <section className="mt-16">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('title')}</h2>
+      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{ui.howTo?.title || 'How to Use'}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {steps.map((step) => (
           <div

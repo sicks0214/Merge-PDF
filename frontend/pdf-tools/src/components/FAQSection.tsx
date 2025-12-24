@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import type { PluginUI } from '@/types';
 
 interface FAQItemProps {
   number: number;
@@ -40,21 +40,22 @@ function FAQItem({ number, question, answer }: FAQItemProps) {
   );
 }
 
-export function FAQSection() {
-  const t = useTranslations('mergePdf.faq');
+interface FAQSectionProps {
+  ui: PluginUI;
+}
 
-  const faqs = [
-    { question: t('q1.question'), answer: t('q1.answer') },
-    { question: t('q2.question'), answer: t('q2.answer') },
-    { question: t('q3.question'), answer: t('q3.answer') },
-    { question: t('q4.question'), answer: t('q4.answer') },
-    { question: t('q5.question'), answer: t('q5.answer') },
-    { question: t('q6.question'), answer: t('q6.answer') },
-  ];
+export function FAQSection({ ui }: FAQSectionProps) {
+  const faqItems = ui.faq?.items || [];
+  // Handle both array and object formats
+  const itemsArray = Array.isArray(faqItems) ? faqItems : Object.values(faqItems);
+  const faqs = itemsArray.map((item: any) => ({
+    question: item?.question || '',
+    answer: item?.answer || '',
+  })).filter((faq: any) => faq.question);
 
   return (
     <section className="mt-16">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('title')}</h2>
+      <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{ui.faq?.title || 'FAQ'}</h2>
       <div className="space-y-3">
         {faqs.map((faq, index) => (
           <FAQItem

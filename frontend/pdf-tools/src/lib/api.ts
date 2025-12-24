@@ -1,7 +1,22 @@
-import type { PDFFile, MergeOptions } from '@/types';
+import type { PDFFile, MergeOptions, PluginData } from '@/types';
 
-// 生产环境通过 Nginx 代理，开发环境直接访问后端
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+export async function fetchPluginConfig(slug: string, lang: string): Promise<PluginData> {
+  const response = await fetch(`${API_BASE}/plugins/${slug}?lang=${lang}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch plugin config');
+  }
+  return response.json();
+}
+
+export async function fetchAllPlugins(lang: string): Promise<any[]> {
+  const response = await fetch(`${API_BASE}/plugins?lang=${lang}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch plugins');
+  }
+  return response.json();
+}
 
 export async function mergePDFsAPI(
   files: PDFFile[],

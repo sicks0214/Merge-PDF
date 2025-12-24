@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumb } from '@/components/Breadcrumb';
@@ -12,14 +12,18 @@ import { HowToSection } from '@/components/HowToSection';
 import { FAQSection } from '@/components/FAQSection';
 import { ResultPage } from '@/components/ResultPage';
 import { analyzePDF, formatFileSize } from '@/lib/pdfMerger';
-import { mergePDFsAPI } from '@/lib/api';
-import type { PDFFile, MergeResult, UseCaseOptions } from '@/types';
+import { mergePDFsAPI, fetchPluginConfig } from '@/lib/api';
+import type { PDFFile, MergeResult, UseCaseOptions, PluginData } from '@/types';
 
-export default function MergePDFPage() {
-  const t = useTranslations('mergePdf');
+export default function ToolPage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const slug = params.slug as string;
 
+  const [pluginData, setPluginData] = useState<PluginData | null>(null);
   const [files, setFiles] = useState<PDFFile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
   const [useCaseOptions, setUseCaseOptions] = useState<UseCaseOptions>({
     optimizeForPrint: false,
@@ -28,12 +32,38 @@ export default function MergePDFPage() {
   });
   const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
 
+  // Fetch plugin config
+  useEffect(() => {
+    async function loadPlugin() {
+      try {
+        const data = await fetchPluginConfig(slug, locale);
+        setPluginData(data);
+      } catch (error) {
+        console.error('Failed to load plugin:', error);
+      } finally {
+        setPageLoading(false);
+      }
+    }
+    loadPlugin();
+  }, [slug, locale]);
+
+  // Helper to get localized text
+  const t = useCallback((key: string): string => {
+    if (!pluginData?.ui) return key;
+    const keys = key.split('.');
+    let value: any = pluginData.ui;
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    return typeof value === 'string' ? value : key;
+  }, [pluginData]);
+
   // Breadcrumb items
-  const breadcrumbItems = [
+  const breadcrumbItems = pluginData ? [
     { label: t('breadcrumb.home'), href: '/', external: true },
-    { label: t('breadcrumb.pdfTools'), href: '/' },
-    { label: t('breadcrumb.mergePdf') },
-  ];
+    { label: t('breadcrumb.pdfTools'), href: `/${locale}` },
+    { label: t('breadcrumb.current') },
+  ] : [];
 
   // Handle files added
   const handleFilesAdded = useCallback(async (newFiles: File[]) => {
@@ -59,7 +89,6 @@ export default function MergePDFPage() {
       return;
     }
 
-    // Analyze files
     const analyzedFiles = await Promise.all(
       pdfFiles.map(async (pdfFile) => {
         try {
@@ -75,28 +104,23 @@ export default function MergePDFPage() {
     setFeedback(null);
   }, [t]);
 
-  // Handle file removal
   const handleRemoveFile = useCallback((id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
-  // Handle file reordering
   const handleReorderFiles = useCallback((newFiles: PDFFile[]) => {
     setFiles(newFiles);
   }, []);
 
-  // Handle page range change
   const handlePageRangeChange = useCallback((fileId: string, pageRange: string) => {
     setFiles((prev) =>
       prev.map((f) => (f.id === fileId ? { ...f, pageRange } : f))
     );
   }, []);
 
-  // Handle use case options change
   const handleUseCaseOptionsChange = useCallback((options: UseCaseOptions) => {
     setUseCaseOptions(options);
 
-    // Show feedback
     if (options.optimizeForPrint) {
       setFeedback({ message: t('feedback.printApplied'), type: 'success' });
     } else if (options.keepBookmarks) {
@@ -105,24 +129,18 @@ export default function MergePDFPage() {
       setFeedback({ message: t('feedback.pageRangeEnabled'), type: 'info' });
     }
 
-    // Auto-hide feedback after 3 seconds
     setTimeout(() => setFeedback(null), 3000);
   }, [t]);
 
-  // Handle merge
   const handleMerge = useCallback(async () => {
     if (files.length === 0) {
       setFeedback({ message: t('feedback.uploadPdfFirst'), type: 'error' });
       return;
     }
 
-    // Check for encrypted files
     const hasEncrypted = files.some((f) => f.isEncrypted);
     if (hasEncrypted) {
-      setFeedback({
-        message: t('feedback.cannotMergeEncrypted'),
-        type: 'error',
-      });
+      setFeedback({ message: t('feedback.cannotMergeEncrypted'), type: 'error' });
       return;
     }
 
@@ -130,21 +148,16 @@ export default function MergePDFPage() {
     setFeedback(null);
 
     try {
-      // Call backend API
       const blob = await mergePDFsAPI(files, {
         keepBookmarks: useCaseOptions.keepBookmarks,
         optimizeForPrint: useCaseOptions.optimizeForPrint,
         usePageRange: useCaseOptions.usePageRange,
       });
 
-      // Calculate total page count
       const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0);
-
-      // Prepare file name
       const baseName = files[0].name.replace('.pdf', '');
       const fileName = `${baseName}-merged.pdf`;
 
-      // Save result
       setMergeResult({
         blob,
         fileName,
@@ -163,29 +176,44 @@ export default function MergePDFPage() {
     }
   }, [files, useCaseOptions, t]);
 
-  // Handle reset
   const handleReset = useCallback(() => {
     setMergeResult(null);
     setFiles([]);
     setFeedback(null);
   }, []);
 
-  // Clear feedback on file changes
   useEffect(() => {
     if (files.length === 0 && feedback?.type === 'success') {
       setFeedback(null);
     }
   }, [files, feedback]);
 
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!pluginData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Tool Not Found</h1>
+          <p className="text-gray-600">The requested tool does not exist.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Breadcrumb */}
         <Breadcrumb items={breadcrumbItems} />
 
-        {/* Page Header */}
         <header className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
             <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -193,7 +221,7 @@ export default function MergePDFPage() {
             </svg>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            {t('title')}
+            {t('h1')}
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             {t('subtitle')}
@@ -201,12 +229,11 @@ export default function MergePDFPage() {
           </p>
         </header>
 
-        {/* Core Tool Area */}
         <section className="mb-12">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="border-2 border-dashed border-blue-200 rounded-2xl bg-gradient-to-br from-gray-50 to-white min-h-[400px] flex items-center justify-center p-8">
               {mergeResult ? (
-                <ResultPage result={mergeResult} onReset={handleReset} />
+                <ResultPage result={mergeResult} onReset={handleReset} ui={pluginData.ui} />
               ) : (
                 <CoreToolArea
                   files={files}
@@ -217,26 +244,22 @@ export default function MergePDFPage() {
                   loading={loading}
                   usePageRange={useCaseOptions.usePageRange}
                   onPageRangeChange={handlePageRangeChange}
+                  ui={pluginData.ui}
                 />
               )}
             </div>
           </div>
         </section>
 
-        {/* Inline Feedback */}
         {feedback && <InlineFeedback message={feedback.message} type={feedback.type} />}
 
-        {/* Use Case Cards */}
-        <UseCaseCards options={useCaseOptions} onOptionsChange={handleUseCaseOptionsChange} />
+        <UseCaseCards options={useCaseOptions} onOptionsChange={handleUseCaseOptionsChange} ui={pluginData.ui} />
 
-        {/* How-to Section */}
-        <HowToSection />
+        <HowToSection ui={pluginData.ui} />
 
-        {/* FAQ Section */}
-        <FAQSection />
+        <FAQSection ui={pluginData.ui} />
 
-        {/* Footer */}
-        <Footer />
+        <Footer ui={pluginData.ui} />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import type { PluginUI } from '@/types';
 
 interface UseCaseOptions {
   optimizeForPrint: boolean;
@@ -11,6 +11,7 @@ interface UseCaseOptions {
 interface UseCaseCardsProps {
   options: UseCaseOptions;
   onOptionsChange: (options: UseCaseOptions) => void;
+  ui: PluginUI;
 }
 
 function CardItem({ children }: { children: React.ReactNode }) {
@@ -31,9 +32,7 @@ function CheckIcon() {
   );
 }
 
-export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
-  const t = useTranslations('mergePdf.useCases');
-
+export function UseCaseCards({ options, onOptionsChange, ui }: UseCaseCardsProps) {
   const handleUsePrintSetting = () => {
     onOptionsChange({
       optimizeForPrint: true,
@@ -58,25 +57,25 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{t('sectionTitle')}</h2>
+      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{ui.useCases?.sectionTitle || 'Use Cases'}</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Use Case 1: Merge PDF for Printing */}
         <CardItem>
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{t('printing.title')}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{t('printing.description')}</p>
+            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.printing?.title || 'Merge for Printing'}</h2>
+            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.printing?.description || ''}</p>
             <ul className="space-y-2 text-gray-700 text-sm">
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('printing.features.1')}</span>
+                <span>{ui.useCases?.printing?.features?.["1"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('printing.features.2')}</span>
+                <span>{ui.useCases?.printing?.features?.["2"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('printing.features.3')}</span>
+                <span>{ui.useCases?.printing?.features?.["3"] || ''}</span>
               </li>
             </ul>
             <button
@@ -87,7 +86,7 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
                   : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
               }`}
             >
-              {t('printing.action')}
+              {ui.useCases?.printing?.action || 'Use This Setting'}
             </button>
           </div>
         </CardItem>
@@ -95,20 +94,20 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
         {/* Use Case 2: Merge PDF Keep Bookmarks */}
         <CardItem>
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{t('bookmarks.title')}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{t('bookmarks.description')}</p>
+            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.bookmarks?.title || 'Keep Bookmarks'}</h2>
+            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.bookmarks?.description || ''}</p>
             <ul className="space-y-2 text-gray-700 text-sm">
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('bookmarks.features.1')}</span>
+                <span>{ui.useCases?.bookmarks?.features?.["1"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('bookmarks.features.2')}</span>
+                <span>{ui.useCases?.bookmarks?.features?.["2"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('bookmarks.features.3')}</span>
+                <span>{ui.useCases?.bookmarks?.features?.["3"] || ''}</span>
               </li>
             </ul>
             <button
@@ -119,7 +118,7 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
                   : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
               }`}
             >
-              {t('bookmarks.action')}
+              {ui.useCases?.bookmarks?.action || 'Use This Setting'}
             </button>
           </div>
         </CardItem>
@@ -127,20 +126,20 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
         {/* Use Case 3: Merge PDF by Page Range */}
         <CardItem>
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{t('pageRange.title')}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{t('pageRange.description')}</p>
+            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.pageRange?.title || 'Page Range'}</h2>
+            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.pageRange?.description || ''}</p>
             <ul className="space-y-2 text-gray-700 text-sm">
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('pageRange.features.1')}</span>
+                <span>{ui.useCases?.pageRange?.features?.["1"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('pageRange.features.2')}</span>
+                <span>{ui.useCases?.pageRange?.features?.["2"] || ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon />
-                <span>{t('pageRange.features.3')}</span>
+                <span>{ui.useCases?.pageRange?.features?.["3"] || ''}</span>
               </li>
             </ul>
             <button
@@ -151,7 +150,7 @@ export function UseCaseCards({ options, onOptionsChange }: UseCaseCardsProps) {
                   : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
               }`}
             >
-              {t('pageRange.action')}
+              {ui.useCases?.pageRange?.action || 'Use This Setting'}
             </button>
           </div>
         </CardItem>

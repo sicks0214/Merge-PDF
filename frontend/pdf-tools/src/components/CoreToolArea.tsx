@@ -2,8 +2,7 @@
 
 import { useCallback, useState, DragEvent } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useTranslations } from 'next-intl';
-import type { PDFFile } from '@/types';
+import type { PDFFile, PluginUI } from '@/types';
 
 interface CoreToolAreaProps {
   files: PDFFile[];
@@ -14,6 +13,7 @@ interface CoreToolAreaProps {
   loading: boolean;
   usePageRange: boolean;
   onPageRangeChange?: (fileId: string, pageRange: string) => void;
+  ui: PluginUI;
 }
 
 export function CoreToolArea({
@@ -25,8 +25,8 @@ export function CoreToolArea({
   loading,
   usePageRange,
   onPageRangeChange,
+  ui,
 }: CoreToolAreaProps) {
-  const t = useTranslations('mergePdf');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -44,7 +44,6 @@ export function CoreToolArea({
     multiple: true,
   });
 
-  // File list drag and drop for reordering
   const handleFileDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -68,7 +67,6 @@ export function CoreToolArea({
 
   return (
     <div className="w-full">
-      {/* Upload Area */}
       {files.length === 0 && (
         <div
           {...getRootProps()}
@@ -86,18 +84,16 @@ export function CoreToolArea({
               </svg>
             </div>
             <span className="inline-block px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200">
-              {t('upload.title')}
+              {ui.upload?.title || 'Select PDF Files'}
             </span>
-            <p className="mt-6 text-lg text-gray-700 font-medium">{t('upload.dragDrop')}</p>
-            <p className="mt-2 text-sm text-gray-500">{t('upload.hint')}</p>
+            <p className="mt-6 text-lg text-gray-700 font-medium">{ui.upload?.dragDrop || 'or drag and drop PDF files here'}</p>
+            <p className="mt-2 text-sm text-gray-500">{ui.upload?.hint || 'Upload multiple PDFs to merge them into one document'}</p>
           </div>
         </div>
       )}
 
-      {/* File List */}
       {files.length > 0 && (
         <div className="space-y-6">
-          {/* Card Grid Layout */}
           <div className="flex flex-wrap items-start gap-8">
             {files.map((file, index) => (
               <div
@@ -110,16 +106,13 @@ export function CoreToolArea({
                   draggedIndex === index ? 'opacity-50 scale-95' : ''
                 }`}
               >
-                {/* Plus badge between cards */}
                 {index > 0 && (
                   <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-light z-10">
                     +
                   </div>
                 )}
 
-                {/* File Card */}
                 <div className="relative bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden w-44 hover:shadow-lg transition-shadow">
-                  {/* Thumbnail / Preview Area */}
                   <div className="h-56 bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4 relative">
                     {file.pageCount === 0 ? (
                       <div className="flex flex-col items-center">
@@ -129,7 +122,7 @@ export function CoreToolArea({
                           </div>
                         </div>
                         <span className="text-xs text-orange-600 font-medium bg-orange-50 px-3 py-1 rounded-full">
-                          {t('fileList.converting')}
+                          {ui.fileList?.converting || 'Converting...'}
                         </span>
                       </div>
                     ) : (
@@ -143,7 +136,6 @@ export function CoreToolArea({
                     )}
                   </div>
 
-                  {/* Remove button */}
                   <button
                     onClick={() => onRemoveFile(file.id)}
                     className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-colors z-20"
@@ -153,23 +145,21 @@ export function CoreToolArea({
                     </svg>
                   </button>
 
-                  {/* File info footer */}
                   <div className="p-3 bg-white border-t border-gray-100">
                     <p className="text-sm text-gray-800 truncate font-medium" title={file.name}>
                       {file.name}
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-xs text-gray-500">
-                        {file.pageCount > 0 ? `${file.pageCount} ${t('fileList.pages')}` : t('fileList.analyzing')}
+                        {file.pageCount > 0 ? `${file.pageCount} ${ui.fileList?.pages || 'pages'}` : ui.fileList?.analyzing || 'Analyzing...'}
                       </p>
                       {file.isEncrypted && (
                         <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">
-                          {t('fileList.encrypted')}
+                          {ui.fileList?.encrypted || 'Encrypted'}
                         </span>
                       )}
                     </div>
 
-                    {/* Page range input (if enabled) */}
                     {usePageRange && onPageRangeChange && (
                       <input
                         type="text"
@@ -185,9 +175,7 @@ export function CoreToolArea({
               </div>
             ))}
 
-            {/* Add more files card */}
             <div className="relative w-44" {...getRootProps()}>
-              {/* Plus badge */}
               <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-light z-10">
                 +
               </div>
@@ -204,7 +192,7 @@ export function CoreToolArea({
                   </div>
                   <div className="p-3 bg-white border-t border-gray-100">
                     <p className="text-sm text-blue-500 font-medium text-center leading-tight">
-                      {t('fileList.addMore')}
+                      {ui.fileList?.addMore || 'Add more files'}
                     </p>
                   </div>
                 </div>
@@ -212,7 +200,6 @@ export function CoreToolArea({
             </div>
           </div>
 
-          {/* Merge button */}
           <button
             onClick={onMerge}
             disabled={loading || files.length === 0}
@@ -224,14 +211,14 @@ export function CoreToolArea({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                {t('actions.merging')}
+                {ui.actions?.merging || 'Merging PDF Files...'}
               </>
             ) : (
               <>
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
-                {t('actions.merge')}
+                {ui.actions?.merge || 'Merge PDF Files'}
               </>
             )}
           </button>

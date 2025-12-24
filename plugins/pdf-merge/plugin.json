@@ -1,0 +1,7 @@
+{
+  "name": "Merge PDF",
+  "slug": "merge",
+  "category": "pdf",
+  "apiPath": "/api/pdf/merge",
+  "order": 1
+}
