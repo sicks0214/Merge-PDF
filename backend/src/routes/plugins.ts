@@ -10,6 +10,11 @@ export function initPlugins() {
   return plugins;
 }
 
+// Get loaded plugins
+export function getPlugins() {
+  return plugins;
+}
+
 // GET /api/plugins - Get all plugins list
 router.get('/', (req, res) => {
   const lang = (req.query.lang as string) || 'en';

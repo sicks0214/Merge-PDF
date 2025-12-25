@@ -1,4 +1,4 @@
-import type { PDFFile, MergeOptions, PluginData } from '@/types';
+import type { PDFFile, MergeOptions, PluginData, PluginListItem } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -10,7 +10,7 @@ export async function fetchPluginConfig(slug: string, lang: string): Promise<Plu
   return response.json();
 }
 
-export async function fetchAllPlugins(lang: string): Promise<any[]> {
+export async function fetchAllPlugins(lang: string): Promise<PluginListItem[]> {
   const response = await fetch(`${API_BASE}/plugins?lang=${lang}`);
   if (!response.ok) {
     throw new Error('Failed to fetch plugins');
@@ -18,9 +18,11 @@ export async function fetchAllPlugins(lang: string): Promise<any[]> {
   return response.json();
 }
 
-export async function mergePDFsAPI(
+export async function callPluginAPI(
+  category: string,
+  slug: string,
   files: PDFFile[],
-  options: MergeOptions
+  options: Record<string, any>
 ): Promise<Blob> {
   const formData = new FormData();
 
@@ -35,15 +37,43 @@ export async function mergePDFsAPI(
     formData.append('pageRanges', JSON.stringify(pageRanges));
   }
 
-  const response = await fetch(`${API_BASE}/pdf/merge`, {
+  const response = await fetch(`${API_BASE}/${category}/${slug}`, {
     method: 'POST',
     body: formData,
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Merge failed' }));
-    throw new Error(error.message || 'Merge failed');
+    const error = await response.json().catch(() => ({ message: 'Operation failed' }));
+    throw new Error(error.message || 'Operation failed');
   }
 
   return response.blob();
+}
+
+export async function analyzeFile(
+  category: string,
+  slug: string,
+  file: File
+): Promise<{ pageCount: number; hasBookmarks: boolean; isEncrypted: boolean }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_BASE}/${category}/${slug}/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Analysis failed');
+  }
+
+  return response.json();
+}
+
+// Legacy function for backward compatibility
+export async function mergePDFsAPI(
+  files: PDFFile[],
+  options: MergeOptions
+): Promise<Blob> {
+  return callPluginAPI('pdf', 'merge', files, options);
 }

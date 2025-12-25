@@ -11,14 +11,21 @@ import { UseCaseCards } from '@/components/UseCaseCards';
 import { HowToSection } from '@/components/HowToSection';
 import { FAQSection } from '@/components/FAQSection';
 import { ResultPage } from '@/components/ResultPage';
-import { analyzePDF, formatFileSize } from '@/lib/pdfMerger';
-import { mergePDFsAPI, fetchPluginConfig } from '@/lib/api';
+import { formatFileSize } from '@/lib/pdfMerger';
+import { callPluginAPI, analyzeFile, fetchPluginConfig } from '@/lib/api';
 import type { PDFFile, MergeResult, UseCaseOptions, PluginData } from '@/types';
+
+const categoryMeta: Record<string, { name: { en: string; zh: string }; category: string }> = {
+  'pdf-tools': { name: { en: 'PDF Tools', zh: 'PDF 工具' }, category: 'pdf' },
+  'image-tools': { name: { en: 'Image Tools', zh: '图像工具' }, category: 'image' },
+};
 
 export default function ToolPage() {
   const params = useParams();
-  const locale = params.locale as string;
+  const locale = (params.locale as string) || 'en';
+  const categoryId = params.category as string; // e.g., 'pdf-tools'
   const slug = params.slug as string;
+  const category = categoryMeta[categoryId]?.category || categoryId.replace('-tools', '');
 
   const [pluginData, setPluginData] = useState<PluginData | null>(null);
   const [files, setFiles] = useState<PDFFile[]>([]);
@@ -58,11 +65,13 @@ export default function ToolPage() {
     return typeof value === 'string' ? value : key;
   }, [pluginData]);
 
-  // Breadcrumb items
+  const categoryName = categoryMeta[categoryId]?.name[locale as 'en' | 'zh'] || categoryId;
+
+  // Breadcrumb items - 分类链接指向主站
   const breadcrumbItems = pluginData ? [
-    { label: t('breadcrumb.home'), href: '/', external: true },
-    { label: t('breadcrumb.pdfTools'), href: `/${locale}` },
-    { label: t('breadcrumb.current') },
+    { label: t('breadcrumb.home') || 'Home', href: '/', external: true },
+    { label: categoryName, href: `/${categoryId}`, external: true },
+    { label: t('breadcrumb.current') || t('h1') },
   ] : [];
 
   // Handle files added
@@ -85,14 +94,14 @@ export default function ToolPage() {
     }
 
     if (pdfFiles.length === 0) {
-      setFeedback({ message: t('feedback.pdfOnly'), type: 'error' });
+      setFeedback({ message: t('feedback.pdfOnly') || 'Please upload PDF files only', type: 'error' });
       return;
     }
 
     const analyzedFiles = await Promise.all(
       pdfFiles.map(async (pdfFile) => {
         try {
-          const info = await analyzePDF(pdfFile.file);
+          const info = await analyzeFile(category, slug, pdfFile.file);
           return { ...pdfFile, ...info };
         } catch {
           return pdfFile;
@@ -102,7 +111,7 @@ export default function ToolPage() {
 
     setFiles((prev) => [...prev, ...analyzedFiles]);
     setFeedback(null);
-  }, [t]);
+  }, [t, category, slug]);
 
   const handleRemoveFile = useCallback((id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
@@ -122,11 +131,11 @@ export default function ToolPage() {
     setUseCaseOptions(options);
 
     if (options.optimizeForPrint) {
-      setFeedback({ message: t('feedback.printApplied'), type: 'success' });
+      setFeedback({ message: t('feedback.printApplied') || 'Print optimization applied', type: 'success' });
     } else if (options.keepBookmarks) {
-      setFeedback({ message: t('feedback.bookmarksPreserved'), type: 'success' });
+      setFeedback({ message: t('feedback.bookmarksPreserved') || 'Bookmarks will be preserved', type: 'success' });
     } else if (options.usePageRange) {
-      setFeedback({ message: t('feedback.pageRangeEnabled'), type: 'info' });
+      setFeedback({ message: t('feedback.pageRangeEnabled') || 'Page range selection enabled', type: 'info' });
     }
 
     setTimeout(() => setFeedback(null), 3000);
@@ -134,13 +143,13 @@ export default function ToolPage() {
 
   const handleMerge = useCallback(async () => {
     if (files.length === 0) {
-      setFeedback({ message: t('feedback.uploadPdfFirst'), type: 'error' });
+      setFeedback({ message: t('feedback.uploadPdfFirst') || 'Please upload PDF files first', type: 'error' });
       return;
     }
 
     const hasEncrypted = files.some((f) => f.isEncrypted);
     if (hasEncrypted) {
-      setFeedback({ message: t('feedback.cannotMergeEncrypted'), type: 'error' });
+      setFeedback({ message: t('feedback.cannotMergeEncrypted') || 'Cannot process encrypted files', type: 'error' });
       return;
     }
 
@@ -148,7 +157,7 @@ export default function ToolPage() {
     setFeedback(null);
 
     try {
-      const blob = await mergePDFsAPI(files, {
+      const blob = await callPluginAPI(category, slug, files, {
         keepBookmarks: useCaseOptions.keepBookmarks,
         optimizeForPrint: useCaseOptions.optimizeForPrint,
         usePageRange: useCaseOptions.usePageRange,
@@ -156,7 +165,8 @@ export default function ToolPage() {
 
       const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0);
       const baseName = files[0].name.replace('.pdf', '');
-      const fileName = `${baseName}-merged.pdf`;
+      const outputFilename = pluginData?.schema?.output?.filename || 'output.pdf';
+      const fileName = outputFilename.replace('merged.pdf', `${baseName}-merged.pdf`);
 
       setMergeResult({
         blob,
@@ -168,13 +178,13 @@ export default function ToolPage() {
       setFeedback(null);
     } catch (err) {
       setFeedback({
-        message: err instanceof Error ? err.message : 'Merge failed. Please try again.',
+        message: err instanceof Error ? err.message : 'Operation failed. Please try again.',
         type: 'error',
       });
     } finally {
       setLoading(false);
     }
-  }, [files, useCaseOptions, t]);
+  }, [files, useCaseOptions, t, category, slug, pluginData]);
 
   const handleReset = useCallback(() => {
     setMergeResult(null);
@@ -216,9 +226,7 @@ export default function ToolPage() {
 
         <header className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <span className="text-2xl">{pluginData.ui?.icon || '📄'}</span>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             {t('h1')}

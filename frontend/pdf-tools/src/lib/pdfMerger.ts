@@ -1,5 +1,6 @@
 /**
  * Analyze a PDF file to get its metadata
+ * @deprecated Use analyzeFile from api.ts instead
  */
 export async function analyzePDF(file: File): Promise<{
   pageCount: number;
@@ -10,7 +11,7 @@ export async function analyzePDF(file: File): Promise<{
   formData.append('file', file);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
-  const response = await fetch(`${API_BASE}/pdf/analyze`, {
+  const response = await fetch(`${API_BASE}/pdf/merge/analyze`, {
     method: 'POST',
     body: formData,
   });

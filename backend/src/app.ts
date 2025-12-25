@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import pdfRoutes from './routes/pdf';
-import pluginsRoutes, { initPlugins } from './routes/plugins';
+// Import handlers first to register them before loading plugins
+import './handlers';
+import pluginsRoutes, { initPlugins, getPlugins } from './routes/plugins';
+import { createDynamicRoutes } from './routes/dynamic';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -21,8 +23,8 @@ app.get('/api/health', (req, res) => {
 // Plugins API
 app.use('/api/plugins', pluginsRoutes);
 
-// PDF routes
-app.use('/api/pdf', pdfRoutes);
+// Dynamic plugin routes
+app.use('/api', createDynamicRoutes(plugins));
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
