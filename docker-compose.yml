@@ -8,10 +8,10 @@ services:
     container_name: toolibox-frontend-pdf-tools
     restart: always
     ports:
-      - "3001:3001"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=3000
       - NEXT_PUBLIC_MAIN_APP_URL=
       - NEXT_PUBLIC_API_URL=/api
     depends_on:
@@ -32,6 +32,25 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
+      - DATABASE_URL=postgresql://toolibox:toolibox@postgres:5432/toolibox
+    depends_on:
+      - postgres
+    networks:
+      - toolibox-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: toolibox-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=toolibox
+      - POSTGRES_PASSWORD=toolibox
+      - POSTGRES_DB=toolibox
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - toolibox-network
 
@@ -39,3 +58,6 @@ networks:
   toolibox-network:
     name: toolibox-network
     driver: bridge
+
+volumes:
+  postgres_data:

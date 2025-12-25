@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-// Import handlers first to register them before loading plugins
-import './handlers';
 import pluginsRoutes, { initPlugins, getPlugins } from './routes/plugins';
 import { createDynamicRoutes } from './routes/dynamic';
 

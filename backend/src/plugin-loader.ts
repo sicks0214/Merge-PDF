@@ -41,14 +41,7 @@ export interface Plugin {
   handler: any;
 }
 
-const PLUGINS_DIR = path.join(__dirname, '../../plugins');
-
-// Handler registry - handlers are registered here
-const handlerRegistry: Record<string, any> = {};
-
-export function registerHandler(slug: string, handler: any) {
-  handlerRegistry[slug] = handler;
-}
+const PLUGINS_DIR = path.join(__dirname, '../plugins');
 
 export function loadPlugins(): Plugin[] {
   const plugins: Plugin[] = [];
@@ -70,6 +63,7 @@ export function loadPlugins(): Plugin[] {
       const configPath = path.join(pluginPath, 'plugin.json');
       const uiPath = path.join(pluginPath, 'ui.json');
       const schemaPath = path.join(pluginPath, 'schema.json');
+      const handlerPath = path.join(pluginPath, 'handler', 'index');
 
       if (!fs.existsSync(configPath)) {
         console.warn(`Missing plugin.json in ${dir}`);
@@ -80,8 +74,13 @@ export function loadPlugins(): Plugin[] {
       const ui: PluginUI = fs.existsSync(uiPath) ? JSON.parse(fs.readFileSync(uiPath, 'utf-8')) : {};
       const schema: PluginSchema = fs.existsSync(schemaPath) ? JSON.parse(fs.readFileSync(schemaPath, 'utf-8')) : {} as PluginSchema;
 
-      // Get handler from registry
-      const handler = handlerRegistry[config.slug] || null;
+      // Load handler from plugin directory
+      let handler = null;
+      try {
+        handler = require(handlerPath).default;
+      } catch (e) {
+        console.warn(`No handler found for plugin ${dir}`);
+      }
 
       plugins.push({ config, ui, schema, handler });
       console.log(`Loaded plugin: ${config.name} (${config.slug})${handler ? '' : ' [no handler]'}`);
