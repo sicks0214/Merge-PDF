@@ -32,11 +32,10 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
-      - DATABASE_URL=${DATABASE_URL:-postgresql://toolibox:toolibox@host.docker.internal:5432/toolibox}
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - toolibox-network
 
 networks:
   toolibox-network:
-    external: true
-    name: toolibox-network
+    driver: bridge
