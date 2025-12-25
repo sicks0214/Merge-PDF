@@ -11,6 +11,7 @@
     "en": "Merge PDF Files",
     "zh": "合并 PDF 文件"
   },
+  "icon": "📄",
   "subtitle": {
     "en": "Combine multiple PDF files into one document instantly.",
     "zh": "即时将多个 PDF 文件合并为一个文档。"

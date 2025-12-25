@@ -5,7 +5,7 @@ services:
       context: ./frontend/pdf-tools
       dockerfile: Dockerfile
     image: toolibox/frontend-pdf-tools
-    container_name: toolibox-frontend-pdf-tools
+    container_name: pdf-tools-frontend
     restart: always
     ports:
       - "3001:3000"
@@ -17,7 +17,7 @@ services:
     depends_on:
       - backend-main
     networks:
-      - toolibox-network
+      - pdf-tools-network
 
   # Main Backend (统一后端服务)
   backend-main:
@@ -25,7 +25,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     image: toolibox/backend-main
-    container_name: toolibox-backend-main
+    container_name: pdf-tools-backend
     restart: always
     ports:
       - "8001:8000"
@@ -34,8 +34,8 @@ services:
       - PORT=8000
       - DATABASE_URL=${DATABASE_URL}
     networks:
-      - toolibox-network
+      - pdf-tools-network
 
 networks:
-  toolibox-network:
+  pdf-tools-network:
     driver: bridge

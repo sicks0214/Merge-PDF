@@ -1,38 +1,33 @@
 {
   "upload": {
     "multiple": true,
-    "types": ["pdf"],
+    "types": ["application/pdf"],
     "maxSize": 104857600,
     "maxFiles": 20
   },
   "options": [
     {
       "name": "keepBookmarks",
-      "type": "boolean",
+      "type": "checkbox",
       "default": false,
       "label": { "en": "Keep Bookmarks", "zh": "保留书签" }
     },
     {
       "name": "optimizeForPrint",
-      "type": "boolean",
+      "type": "checkbox",
       "default": false,
       "label": { "en": "Optimize for Print", "zh": "优化打印" }
     },
     {
       "name": "usePageRange",
-      "type": "boolean",
+      "type": "checkbox",
       "default": false,
       "label": { "en": "Use Page Range", "zh": "使用页面范围" }
     }
   ],
-  "features": {
-    "dragReorder": true,
-    "pageRangeInput": true,
-    "filePreview": true
+  "submitText": {
+    "en": "Merge PDF Files",
+    "zh": "合并 PDF 文件"
   },
-  "output": {
-    "type": "file",
-    "mimeType": "application/pdf",
-    "filename": "merged.pdf"
-  }
+  "outputType": "file"
 }
