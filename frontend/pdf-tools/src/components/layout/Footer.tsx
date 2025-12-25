@@ -3,10 +3,10 @@
 import type { PluginUI } from '@/types';
 
 interface FooterProps {
-  ui: PluginUI;
+  ui?: PluginUI;
 }
 
-export function Footer({ ui }: FooterProps) {
+export function Footer({ ui = {} }: FooterProps) {
   return (
     <footer className="mt-20 py-8 border-t border-gray-200">
       <div className="text-center">
