@@ -63,7 +63,7 @@ export function loadPlugins(): Plugin[] {
       const configPath = path.join(pluginPath, 'plugin.json');
       const uiPath = path.join(pluginPath, 'ui.json');
       const schemaPath = path.join(pluginPath, 'schema.json');
-      const handlerPath = path.join(pluginPath, 'handler', 'index');
+      const handlerPath = path.join(pluginPath, 'handler.js');
 
       if (!fs.existsSync(configPath)) {
         console.warn(`Missing plugin.json in ${dir}`);
@@ -77,9 +77,12 @@ export function loadPlugins(): Plugin[] {
       // Load handler from plugin directory
       let handler = null;
       try {
-        handler = require(handlerPath).default;
+        if (fs.existsSync(handlerPath)) {
+          const handlerModule = require(handlerPath);
+          handler = handlerModule.default || handlerModule;
+        }
       } catch (e) {
-        console.warn(`No handler found for plugin ${dir}`);
+        console.warn(`No handler found for plugin ${dir}:`, e);
       }
 
       plugins.push({ config, ui, schema, handler });
