@@ -24,7 +24,7 @@ export function Header() {
             </svg>
           </div>
           <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            PDF Tools
+            Merge PDF
           </span>
         </Link>
 
