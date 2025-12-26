@@ -9,9 +9,7 @@ export interface PDFFile {
 }
 
 export interface MergeOptions {
-  keepBookmarks: boolean;
-  optimizeForPrint: boolean;
-  usePageRange: boolean;
+  [key: string]: any;
 }
 
 export interface MergeResult {
@@ -19,12 +17,6 @@ export interface MergeResult {
   fileName: string;
   fileSize: string;
   pageCount: number;
-}
-
-export interface UseCaseOptions {
-  optimizeForPrint: boolean;
-  keepBookmarks: boolean;
-  usePageRange: boolean;
 }
 
 export interface PluginConfig {
@@ -41,8 +33,9 @@ export interface PluginUI {
 
 export interface PluginSchemaOption {
   name: string;
-  type: 'boolean' | 'number' | 'text' | 'select';
+  type: 'boolean' | 'number' | 'text' | 'select' | 'checkbox';
   default?: any;
+  useCaseKey?: string;
   label: { [lang: string]: string };
   choices?: Array<{
     value: string;
@@ -61,8 +54,8 @@ export interface PluginSchema {
     maxFiles: number;
   };
   options: PluginSchemaOption[];
-  features: { [key: string]: boolean };
-  output: {
+  features?: { [key: string]: boolean };
+  output?: {
     type: string;
     mimeType: string;
     filename: string;

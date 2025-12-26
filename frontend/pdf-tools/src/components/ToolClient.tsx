@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumb } from '@/components/Breadcrumb';
@@ -12,7 +12,7 @@ import { FAQSection } from '@/components/FAQSection';
 import { ResultPage } from '@/components/ResultPage';
 import { formatFileSize } from '@/lib/pdfMerger';
 import { callPluginAPI, analyzeFile } from '@/lib/api';
-import type { PDFFile, MergeResult, UseCaseOptions, PluginData } from '@/types';
+import type { PDFFile, MergeResult, PluginData } from '@/types';
 
 interface ToolClientProps {
   pluginData: PluginData;
@@ -27,12 +27,18 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
   const [files, setFiles] = useState<PDFFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
-  const [useCaseOptions, setUseCaseOptions] = useState<UseCaseOptions>({
-    optimizeForPrint: false,
-    keepBookmarks: false,
-    usePageRange: false,
-  });
   const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
+
+  // 从 schema.options 动态初始化选项状态
+  const initialOptions = useMemo(() => {
+    const opts: Record<string, any> = {};
+    pluginData.schema?.options?.forEach(opt => {
+      opts[opt.name] = opt.default ?? false;
+    });
+    return opts;
+  }, [pluginData.schema]);
+
+  const [options, setOptions] = useState<Record<string, any>>(initialOptions);
 
   const t = useCallback((key: string): string => {
     if (!pluginData?.ui) return key;
@@ -41,12 +47,16 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
     for (const k of keys) {
       value = value?.[k];
     }
+    if (typeof value === 'object' && value !== null) {
+      return value[locale] || value['en'] || key;
+    }
     return typeof value === 'string' ? value : key;
-  }, [pluginData]);
+  }, [pluginData, locale]);
 
-  const categoryName = categoryId === 'pdf-tools'
-    ? (locale === 'zh' ? 'PDF 工具' : 'PDF Tools')
-    : categoryId;
+  // 从 ui.json 动态获取分类名称
+  const categoryName = pluginData.ui?.categoryName?.[locale]
+    || pluginData.ui?.categoryName?.['en']
+    || categoryId;
 
   const breadcrumbItems = [
     { label: t('breadcrumb.home') || 'Home', href: `/${locale}`, external: true },
@@ -106,19 +116,23 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
     );
   }, []);
 
-  const handleUseCaseOptionsChange = useCallback((options: UseCaseOptions) => {
-    setUseCaseOptions(options);
+  const handleOptionsChange = useCallback((newOptions: Record<string, any>) => {
+    setOptions(newOptions);
 
-    if (options.optimizeForPrint) {
-      setFeedback({ message: t('feedback.printApplied') || 'Print optimization applied', type: 'success' });
-    } else if (options.keepBookmarks) {
-      setFeedback({ message: t('feedback.bookmarksPreserved') || 'Bookmarks will be preserved', type: 'success' });
-    } else if (options.usePageRange) {
-      setFeedback({ message: t('feedback.pageRangeEnabled') || 'Page range selection enabled', type: 'info' });
+    // 显示反馈信息
+    const changedKey = Object.keys(newOptions).find(key => newOptions[key] && !options[key]);
+    if (changedKey) {
+      const opt = pluginData.schema?.options?.find(o => o.name === changedKey);
+      if (opt?.useCaseKey) {
+        const feedbackKey = `feedback.${opt.useCaseKey}Applied`;
+        const feedbackMsg = t(feedbackKey);
+        if (feedbackMsg !== feedbackKey) {
+          setFeedback({ message: feedbackMsg, type: 'success' });
+          setTimeout(() => setFeedback(null), 3000);
+        }
+      }
     }
-
-    setTimeout(() => setFeedback(null), 3000);
-  }, [t]);
+  }, [options, pluginData.schema, t]);
 
   const handleMerge = useCallback(async () => {
     if (files.length === 0) {
@@ -136,11 +150,7 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
     setFeedback(null);
 
     try {
-      const blob = await callPluginAPI(category, slug, files, {
-        keepBookmarks: useCaseOptions.keepBookmarks,
-        optimizeForPrint: useCaseOptions.optimizeForPrint,
-        usePageRange: useCaseOptions.usePageRange,
-      });
+      const blob = await callPluginAPI(category, slug, files, options);
 
       const totalPages = files.reduce((sum, file) => sum + file.pageCount, 0);
       const timestamp = Date.now();
@@ -162,7 +172,7 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
     } finally {
       setLoading(false);
     }
-  }, [files, useCaseOptions, t, category, slug]);
+  }, [files, options, t, category, slug]);
 
   const handleReset = useCallback(() => {
     setMergeResult(null);
@@ -209,7 +219,7 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
                   onReorderFiles={handleReorderFiles}
                   onMerge={handleMerge}
                   loading={loading}
-                  usePageRange={useCaseOptions.usePageRange}
+                  usePageRange={options.usePageRange}
                   onPageRangeChange={handlePageRangeChange}
                   ui={pluginData.ui}
                 />
@@ -220,7 +230,13 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
 
         {feedback && <InlineFeedback message={feedback.message} type={feedback.type} />}
 
-        <UseCaseCards options={useCaseOptions} onOptionsChange={handleUseCaseOptionsChange} ui={pluginData.ui} />
+        <UseCaseCards
+          schemaOptions={pluginData.schema?.options || []}
+          options={options}
+          onOptionsChange={handleOptionsChange}
+          ui={pluginData.ui}
+          locale={locale}
+        />
 
         <HowToSection ui={pluginData.ui} />
 

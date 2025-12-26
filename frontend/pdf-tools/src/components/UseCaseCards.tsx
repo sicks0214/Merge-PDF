@@ -1,17 +1,13 @@
 'use client';
 
-import type { PluginUI } from '@/types';
-
-interface UseCaseOptions {
-  optimizeForPrint: boolean;
-  keepBookmarks: boolean;
-  usePageRange: boolean;
-}
+import type { PluginUI, PluginSchemaOption } from '@/types';
 
 interface UseCaseCardsProps {
-  options: UseCaseOptions;
-  onOptionsChange: (options: UseCaseOptions) => void;
+  schemaOptions: PluginSchemaOption[];
+  options: Record<string, any>;
+  onOptionsChange: (options: Record<string, any>) => void;
   ui: PluginUI;
+  locale: string;
 }
 
 function CardItem({ children }: { children: React.ReactNode }) {
@@ -32,128 +28,67 @@ function CheckIcon() {
   );
 }
 
-export function UseCaseCards({ options, onOptionsChange, ui }: UseCaseCardsProps) {
-  const handleUsePrintSetting = () => {
+export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, locale }: UseCaseCardsProps) {
+  const useCaseOptions = schemaOptions.filter(opt => opt.useCaseKey);
+
+  if (useCaseOptions.length === 0) return null;
+
+  const handleOptionClick = (optionName: string) => {
     onOptionsChange({
-      optimizeForPrint: true,
-      keepBookmarks: false,
-      usePageRange: false,
+      ...options,
+      [optionName]: true,
     });
   };
 
-  const handleUseBookmarksSetting = () => {
-    onOptionsChange({
-      ...options,
-      keepBookmarks: true,
-    });
-  };
-
-  const handleUsePageRangeSetting = () => {
-    onOptionsChange({
-      ...options,
-      usePageRange: true,
-    });
+  const getLocalizedText = (obj: any) => {
+    if (!obj) return '';
+    return obj[locale] || obj['en'] || '';
   };
 
   return (
     <div className="mt-12">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">{ui.useCases?.sectionTitle || 'Use Cases'}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Use Case 1: Merge PDF for Printing */}
-        <CardItem>
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.printing?.title || 'Merge for Printing'}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.printing?.description || ''}</p>
-            <ul className="space-y-2 text-gray-700 text-sm">
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.printing?.features?.["1"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.printing?.features?.["2"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.printing?.features?.["3"] || ''}</span>
-              </li>
-            </ul>
-            <button
-              onClick={handleUsePrintSetting}
-              className={`w-full px-4 py-2.5 font-semibold rounded-lg transition-all duration-200 text-sm ${
-                options.optimizeForPrint
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
-              }`}
-            >
-              {ui.useCases?.printing?.action || 'Use This Setting'}
-            </button>
-          </div>
-        </CardItem>
+      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+        {getLocalizedText(ui.useCases?.sectionTitle) || 'Use Cases'}
+      </h2>
+      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(useCaseOptions.length, 3)} gap-6`}>
+        {useCaseOptions.map(opt => {
+          const useCaseData = ui.useCases?.[opt.useCaseKey!];
+          if (!useCaseData) return null;
 
-        {/* Use Case 2: Merge PDF Keep Bookmarks */}
-        <CardItem>
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.bookmarks?.title || 'Keep Bookmarks'}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.bookmarks?.description || ''}</p>
-            <ul className="space-y-2 text-gray-700 text-sm">
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.bookmarks?.features?.["1"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.bookmarks?.features?.["2"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.bookmarks?.features?.["3"] || ''}</span>
-              </li>
-            </ul>
-            <button
-              onClick={handleUseBookmarksSetting}
-              className={`w-full px-4 py-2.5 font-semibold rounded-lg transition-all duration-200 text-sm ${
-                options.keepBookmarks
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
-              }`}
-            >
-              {ui.useCases?.bookmarks?.action || 'Use This Setting'}
-            </button>
-          </div>
-        </CardItem>
+          const features = useCaseData.features || {};
+          const featureKeys = Object.keys(features).sort();
 
-        {/* Use Case 3: Merge PDF by Page Range */}
-        <CardItem>
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">{ui.useCases?.pageRange?.title || 'Page Range'}</h2>
-            <p className="text-gray-700 text-sm leading-relaxed">{ui.useCases?.pageRange?.description || ''}</p>
-            <ul className="space-y-2 text-gray-700 text-sm">
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.pageRange?.features?.["1"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.pageRange?.features?.["2"] || ''}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckIcon />
-                <span>{ui.useCases?.pageRange?.features?.["3"] || ''}</span>
-              </li>
-            </ul>
-            <button
-              onClick={handleUsePageRangeSetting}
-              className={`w-full px-4 py-2.5 font-semibold rounded-lg transition-all duration-200 text-sm ${
-                options.usePageRange
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
-              }`}
-            >
-              {ui.useCases?.pageRange?.action || 'Use This Setting'}
-            </button>
-          </div>
-        </CardItem>
+          return (
+            <CardItem key={opt.name}>
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {getLocalizedText(useCaseData.title)}
+                </h2>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {getLocalizedText(useCaseData.description)}
+                </p>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  {featureKeys.map(key => (
+                    <li key={key} className="flex items-start gap-2">
+                      <CheckIcon />
+                      <span>{getLocalizedText(features[key])}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleOptionClick(opt.name)}
+                  className={`w-full px-4 py-2.5 font-semibold rounded-lg transition-all duration-200 text-sm ${
+                    options[opt.name]
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:scale-105'
+                  }`}
+                >
+                  {getLocalizedText(useCaseData.action) || 'Use This Setting'}
+                </button>
+              </div>
+            </CardItem>
+          );
+        })}
       </div>
     </div>
   );

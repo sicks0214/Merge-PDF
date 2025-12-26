@@ -7,21 +7,24 @@
   },
   "options": [
     {
-      "name": "keepBookmarks",
-      "type": "checkbox",
-      "default": false,
-      "label": { "en": "Keep Bookmarks", "zh": "保留书签" }
-    },
-    {
       "name": "optimizeForPrint",
       "type": "checkbox",
       "default": false,
+      "useCaseKey": "printing",
       "label": { "en": "Optimize for Print", "zh": "优化打印" }
+    },
+    {
+      "name": "keepBookmarks",
+      "type": "checkbox",
+      "default": false,
+      "useCaseKey": "bookmarks",
+      "label": { "en": "Keep Bookmarks", "zh": "保留书签" }
     },
     {
       "name": "usePageRange",
       "type": "checkbox",
       "default": false,
+      "useCaseKey": "pageRange",
       "label": { "en": "Use Page Range", "zh": "使用页面范围" }
     }
   ],
