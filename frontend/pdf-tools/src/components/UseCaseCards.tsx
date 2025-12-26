@@ -34,14 +34,16 @@ export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, loca
   if (useCaseOptions.length === 0) return null;
 
   const handleOptionClick = (optionName: string) => {
-    onOptionsChange({
-      ...options,
-      [optionName]: true,
+    const newOptions: Record<string, any> = {};
+    useCaseOptions.forEach(opt => {
+      newOptions[opt.name] = opt.name === optionName;
     });
+    onOptionsChange({ ...options, ...newOptions });
   };
 
   const getLocalizedText = (obj: any) => {
     if (!obj) return '';
+    if (typeof obj === 'string') return obj;  // Already localized by backend
     return obj[locale] || obj['en'] || '';
   };
 
@@ -50,7 +52,7 @@ export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, loca
       <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
         {getLocalizedText(ui.useCases?.sectionTitle) || 'Use Cases'}
       </h2>
-      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(useCaseOptions.length, 3)} gap-6`}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {useCaseOptions.map(opt => {
           const useCaseData = ui.useCases?.[opt.useCaseKey!];
           if (!useCaseData) return null;
@@ -61,17 +63,17 @@ export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, loca
           return (
             <CardItem key={opt.name}>
               <div className="space-y-4">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold" style={{ color: '#111827' }}>
                   {getLocalizedText(useCaseData.title)}
-                </h2>
-                <p className="text-gray-700 text-sm leading-relaxed">
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#374151' }}>
                   {getLocalizedText(useCaseData.description)}
                 </p>
-                <ul className="space-y-2 text-gray-700 text-sm">
+                <ul className="space-y-2 text-sm">
                   {featureKeys.map(key => (
                     <li key={key} className="flex items-start gap-2">
                       <CheckIcon />
-                      <span>{getLocalizedText(features[key])}</span>
+                      <span style={{ color: '#374151' }}>{getLocalizedText(features[key])}</span>
                     </li>
                   ))}
                 </ul>
