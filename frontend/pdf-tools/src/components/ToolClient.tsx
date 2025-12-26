@@ -28,6 +28,7 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
   const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
+  const [globalPageRange, setGlobalPageRange] = useState<string>('');
 
   // 从 schema.options 动态初始化选项状态
   const initialOptions = useMemo(() => {
@@ -236,6 +237,8 @@ export function ToolClient({ pluginData, locale, categoryId, slug }: ToolClientP
           onOptionsChange={handleOptionsChange}
           ui={pluginData.ui}
           locale={locale}
+          globalPageRange={globalPageRange}
+          onGlobalPageRangeChange={setGlobalPageRange}
         />
 
         <HowToSection ui={pluginData.ui} />

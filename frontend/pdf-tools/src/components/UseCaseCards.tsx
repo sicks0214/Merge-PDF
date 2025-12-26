@@ -8,6 +8,8 @@ interface UseCaseCardsProps {
   onOptionsChange: (options: Record<string, any>) => void;
   ui: PluginUI;
   locale: string;
+  globalPageRange?: string;
+  onGlobalPageRangeChange?: (value: string) => void;
 }
 
 function CardItem({ children }: { children: React.ReactNode }) {
@@ -28,7 +30,7 @@ function CheckIcon() {
   );
 }
 
-export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, locale }: UseCaseCardsProps) {
+export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, locale, globalPageRange, onGlobalPageRangeChange }: UseCaseCardsProps) {
   const useCaseOptions = schemaOptions.filter(opt => opt.useCaseKey);
 
   if (useCaseOptions.length === 0) return null;
@@ -87,6 +89,15 @@ export function UseCaseCards({ schemaOptions, options, onOptionsChange, ui, loca
                 >
                   {getLocalizedText(useCaseData.action) || 'Use This Setting'}
                 </button>
+                {opt.name === 'usePageRange' && options[opt.name] && onGlobalPageRangeChange && (
+                  <input
+                    type="text"
+                    placeholder="e.g. 1-3, 5, 8-10"
+                    value={globalPageRange || ''}
+                    onChange={(e) => onGlobalPageRangeChange(e.target.value)}
+                    className="w-full mt-3 px-4 py-2.5 text-sm border-2 border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                )}
               </div>
             </CardItem>
           );
