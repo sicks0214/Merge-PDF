@@ -1,5 +1,5 @@
 {
-  "categoryName": { "en": "Merge PDF", "zh": "合并 PDF" },
+  "categoryName": { "en": "PDF Tools", "zh": "PDF 工具" },
   "title": {
     "en": "Merge PDF Files - Free Online PDF Merger",
     "zh": "合并 PDF 文件 - 免费在线 PDF 合并工具"
@@ -12,97 +12,76 @@
     "en": "Merge PDF Files",
     "zh": "合并 PDF 文件"
   },
-  "icon": "📄",
+  "icon": "merge-pdf",
   "subtitle": {
     "en": "Combine multiple PDF files into one document instantly.",
     "zh": "即时将多个 PDF 文件合并为一个文档。"
   },
   "features": {
-    "en": "Free, secure, and easy to use • No registration required",
-    "zh": "免费、安全、易于使用 • 无需注册"
-  },
-  "breadcrumb": {
-    "home": { "en": "Home", "zh": "首页" },
-    "pdfTools": { "en": "PDF Tools", "zh": "PDF 工具" },
-    "current": { "en": "Merge PDF", "zh": "合并 PDF" }
+    "en": [
+      "Free, secure, and easy to use",
+      "No registration required",
+      "Support up to 20 PDF files",
+      "Page range selection supported"
+    ],
+    "zh": [
+      "免费、安全、易于使用",
+      "无需注册",
+      "支持最多 20 个 PDF 文件",
+      "支持页面范围选择"
+    ]
   },
   "upload": {
-    "title": { "en": "Select PDF Files", "zh": "选择 PDF 文件" },
-    "dragDrop": { "en": "or drag and drop PDF files here", "zh": "或将 PDF 文件拖放到此处" },
-    "hint": { "en": "Upload multiple PDFs to merge them into one document", "zh": "上传多个 PDF 文件以合并为一个文档" }
-  },
-  "fileList": {
-    "pages": { "en": "pages", "zh": "页" },
-    "analyzing": { "en": "Analyzing...", "zh": "分析中..." },
-    "converting": { "en": "Converting...", "zh": "转换中..." },
-    "encrypted": { "en": "Encrypted", "zh": "已加密" },
-    "addMore": { "en": "Add PDF, image, Word, Excel, and PowerPoint files", "zh": "添加 PDF、图片、Word、Excel 和 PowerPoint 文件" }
+    "en": "Select or drag and drop PDF files to merge",
+    "zh": "选择或拖放要合并的 PDF 文件"
   },
   "actions": {
-    "merge": { "en": "Merge PDF Files", "zh": "合并 PDF 文件" },
-    "merging": { "en": "Merging PDF Files...", "zh": "正在合并 PDF 文件..." },
-    "download": { "en": "Download Merged PDF", "zh": "下载合并后的 PDF" },
-    "startOver": { "en": "Start Over", "zh": "重新开始" }
+    "en": [
+      "Upload multiple PDF files",
+      "Drag to reorder files",
+      "Optionally set page ranges",
+      "Click Merge to combine"
+    ],
+    "zh": [
+      "上传多个 PDF 文件",
+      "拖动重新排序文件",
+      "可选设置页面范围",
+      "点击合并按钮"
+    ]
   },
   "feedback": {
-    "printApplied": { "en": "Printing settings applied", "zh": "已应用打印设置" },
-    "bookmarksPreserved": { "en": "Bookmarks will be preserved", "zh": "将保留书签" },
-    "pageRangeEnabled": { "en": "Page range mode enabled", "zh": "已启用页面范围模式" },
-    "uploadPdfFirst": { "en": "Please upload PDF files first", "zh": "请先上传 PDF 文件" },
-    "cannotMergeEncrypted": { "en": "Cannot merge encrypted PDF files. Please remove password protection first.", "zh": "无法合并加密的 PDF 文件。请先移除密码保护。" },
-    "pdfOnly": { "en": "Please upload PDF files only", "zh": "请仅上传 PDF 文件" }
+    "en": "All files are processed securely and deleted after processing.",
+    "zh": "所有文件均安全处理，处理后自动删除。"
   },
   "useCases": {
-    "sectionTitle": { "en": "Advanced Merge Options", "zh": "高级合并选项" },
-    "printing": {
-      "title": { "en": "Merge PDF for Printing", "zh": "合并 PDF 用于打印" },
-      "description": { "en": "Merge PDF for Printing lets you combine multiple PDF files into a single document optimized for printing.", "zh": "合并 PDF 用于打印可让您将多个 PDF 文件合并为一个针对打印优化的文档。" },
-      "features": {
-        "1": { "en": "Optimized for print output", "zh": "针对打印输出优化" },
-        "2": { "en": "Unified paper size and layout", "zh": "统一纸张大小和布局" },
-        "3": { "en": "Ideal for printing and offline use", "zh": "适合打印和离线使用" }
-      },
-      "action": { "en": "Use this setting", "zh": "使用此设置" }
-    },
-    "bookmarks": {
-      "title": { "en": "Merge PDF Keep Bookmarks", "zh": "合并 PDF 保留书签" },
-      "description": { "en": "Merge PDF Keep Bookmarks lets you combine multiple PDF files while preserving the original bookmarks.", "zh": "合并 PDF 保留书签可让您在合并多个 PDF 文件时保留原始书签。" },
-      "features": {
-        "1": { "en": "Preserve original bookmarks", "zh": "保留原始书签" },
-        "2": { "en": "Maintain document structure", "zh": "保持文档结构" },
-        "3": { "en": "Ideal for long or structured PDFs", "zh": "适合长文档或结构化 PDF" }
-      },
-      "action": { "en": "Use this setting", "zh": "使用此设置" }
-    },
-    "pageRange": {
-      "title": { "en": "Merge PDF by Page Range", "zh": "按页面范围合并 PDF" },
-      "description": { "en": "Merge PDF by Page Range allows you to select specific pages from each PDF file before merging.", "zh": "按页面范围合并 PDF 允许您在合并前从每个 PDF 文件中选择特定页面。" },
-      "features": {
-        "1": { "en": "Select custom page ranges (e.g. 1-3, 5, 8-10)", "zh": "选择自定义页面范围（如 1-3, 5, 8-10）" },
-        "2": { "en": "Merge only required pages from each PDF", "zh": "仅合并每个 PDF 中所需的页面" },
-        "3": { "en": "Reduce the final PDF file size", "zh": "减小最终 PDF 文件大小" }
-      },
-      "action": { "en": "Apply page range", "zh": "应用页面范围" }
-    }
+    "en": [
+      "Combine multiple reports into one document",
+      "Merge scanned pages into a single PDF",
+      "Consolidate invoices or receipts",
+      "Create a portfolio from multiple files"
+    ],
+    "zh": [
+      "将多个报告合并为一个文档",
+      "将扫描页面合并为单个 PDF",
+      "整合发票或收据",
+      "从多个文件创建作品集"
+    ]
   },
   "howTo": {
-    "title": { "en": "How to Merge PDF Files", "zh": "如何合并 PDF 文件" },
-    "step1": {
-      "title": { "en": "Upload PDF Files", "zh": "上传 PDF 文件" },
-      "description": { "en": "Select or drag and drop multiple PDF files you want to merge.", "zh": "选择或拖放要合并的多个 PDF 文件。" }
-    },
-    "step2": {
-      "title": { "en": "Arrange Files", "zh": "排列文件" },
-      "description": { "en": "Drag and drop files to reorder them in your desired sequence.", "zh": "拖放文件以按所需顺序重新排列。" }
-    },
-    "step3": {
-      "title": { "en": "Choose Options", "zh": "选择选项" },
-      "description": { "en": "Optionally select merge options like keeping bookmarks or page ranges.", "zh": "可选择合并选项，如保留书签或页面范围。" }
-    },
-    "step4": {
-      "title": { "en": "Download Result", "zh": "下载结果" },
-      "description": { "en": "Click Merge PDF and download your combined document instantly.", "zh": "点击合并 PDF 并立即下载合并后的文档。" }
-    }
+    "en": [
+      "Click or drag to upload your PDF files",
+      "Drag files to reorder them in your desired sequence",
+      "Optionally enable page range mode to select specific pages",
+      "Click 'Merge PDF Files' button",
+      "Download the merged PDF file"
+    ],
+    "zh": [
+      "点击或拖拽上传您的 PDF 文件",
+      "拖动文件以按所需顺序重新排列",
+      "可选启用页面范围模式选择特定页面",
+      "点击"合并 PDF 文件"按钮",
+      "下载合并后的 PDF 文件"
+    ]
   },
   "faq": {
     "en": [
@@ -110,7 +89,6 @@
       { "question": "Are my files secure?", "answer": "All files are processed on our secure servers and automatically deleted after processing." },
       { "question": "Can I merge large PDF files?", "answer": "Yes, you can merge PDF files up to 100MB each." },
       { "question": "Can I merge encrypted PDF files?", "answer": "No, encrypted PDF files cannot be merged. You need to remove the password protection first." },
-      { "question": "Will bookmarks be preserved?", "answer": "You can choose to preserve bookmarks by selecting the Keep Bookmarks option." },
       { "question": "Can I select specific pages?", "answer": "Yes, use the Page Range option to specify which pages to include from each PDF file." }
     ],
     "zh": [
@@ -118,20 +96,7 @@
       { "question": "我的文件安全吗？", "answer": "所有文件都在我们的安全服务器上处理，处理后自动删除。" },
       { "question": "我可以合并大型 PDF 文件吗？", "answer": "是的，您可以合并每个最大 100MB 的 PDF 文件。" },
       { "question": "我可以合并加密的 PDF 文件吗？", "answer": "不可以，无法合并加密的 PDF 文件。您需要先移除密码保护。" },
-      { "question": "书签会被保留吗？", "answer": "您可以通过选择保留书签选项来保留书签。" },
       { "question": "我可以选择特定页面吗？", "answer": "是的，使用页面范围选项指定要从每个 PDF 文件中包含哪些页面。" }
     ]
-  },
-  "result": {
-    "title": { "en": "PDF Merged Successfully!", "zh": "PDF 合并成功！" },
-    "fileName": { "en": "File name", "zh": "文件名" },
-    "fileSize": { "en": "File size", "zh": "文件大小" },
-    "pageCount": { "en": "Total pages", "zh": "总页数" }
-  },
-  "footer": {
-    "secureProcessing": { "en": "Secure Processing", "zh": "安全处理" },
-    "lightningFast": { "en": "Lightning Fast", "zh": "闪电般快速" },
-    "privacyProtected": { "en": "Privacy Protected", "zh": "隐私保护" },
-    "copyright": { "en": "© 2024 Toolibox. All files are processed securely.", "zh": "© 2024 Toolibox。所有文件均安全处理。" }
   }
 }
