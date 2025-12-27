@@ -92,5 +92,6 @@ async function analyze(req, res) {
     }
 }
 
-module.exports = { handler, analyze };
-exports.default = { handler, analyze };
+module.exports = handler;
+module.exports.default = handler;
+module.exports.analyze = analyze;
