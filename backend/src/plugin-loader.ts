@@ -63,7 +63,7 @@ export function loadPlugins(): Plugin[] {
       const configPath = path.join(pluginPath, 'plugin.json');
       const uiPath = path.join(pluginPath, 'ui.json');
       const schemaPath = path.join(pluginPath, 'schema.json');
-      const handlerPath = path.join(pluginPath, 'handler.js');
+      const handlerPath = path.join(pluginPath, 'handler/index.js');
 
       if (!fs.existsSync(configPath)) {
         console.warn(`Missing plugin.json in ${dir}`);

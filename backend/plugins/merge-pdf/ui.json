@@ -105,32 +105,21 @@
     }
   },
   "faq": {
-    "title": { "en": "Frequently Asked Questions", "zh": "常见问题" },
-    "items": [
-      {
-        "question": { "en": "Is Merge PDF free?", "zh": "合并 PDF 是免费的吗？" },
-        "answer": { "en": "Yes, this tool is completely free to use. You can merge unlimited PDF files without any charges or subscriptions.", "zh": "是的，此工具完全免费使用。您可以无限制地合并 PDF 文件，无需任何费用或订阅。" }
-      },
-      {
-        "question": { "en": "Are my files secure?", "zh": "我的文件安全吗？" },
-        "answer": { "en": "All files are processed on our secure servers and automatically deleted after processing.", "zh": "所有文件都在我们的安全服务器上处理，处理后自动删除。" }
-      },
-      {
-        "question": { "en": "Can I merge large PDF files?", "zh": "我可以合并大型 PDF 文件吗？" },
-        "answer": { "en": "Yes, you can merge PDF files up to 100MB each.", "zh": "是的，您可以合并每个最大 100MB 的 PDF 文件。" }
-      },
-      {
-        "question": { "en": "Can I merge encrypted PDF files?", "zh": "我可以合并加密的 PDF 文件吗？" },
-        "answer": { "en": "No, encrypted PDF files cannot be merged. You need to remove the password protection first.", "zh": "不可以，无法合并加密的 PDF 文件。您需要先移除密码保护。" }
-      },
-      {
-        "question": { "en": "Will bookmarks be preserved?", "zh": "书签会被保留吗？" },
-        "answer": { "en": "You can choose to preserve bookmarks by selecting the Keep Bookmarks option.", "zh": "您可以通过选择保留书签选项来保留书签。" }
-      },
-      {
-        "question": { "en": "Can I select specific pages?", "zh": "我可以选择特定页面吗？" },
-        "answer": { "en": "Yes, use the Page Range option to specify which pages to include from each PDF file.", "zh": "是的，使用页面范围选项指定要从每个 PDF 文件中包含哪些页面。" }
-      }
+    "en": [
+      { "question": "Is Merge PDF free?", "answer": "Yes, this tool is completely free to use. You can merge unlimited PDF files without any charges or subscriptions." },
+      { "question": "Are my files secure?", "answer": "All files are processed on our secure servers and automatically deleted after processing." },
+      { "question": "Can I merge large PDF files?", "answer": "Yes, you can merge PDF files up to 100MB each." },
+      { "question": "Can I merge encrypted PDF files?", "answer": "No, encrypted PDF files cannot be merged. You need to remove the password protection first." },
+      { "question": "Will bookmarks be preserved?", "answer": "You can choose to preserve bookmarks by selecting the Keep Bookmarks option." },
+      { "question": "Can I select specific pages?", "answer": "Yes, use the Page Range option to specify which pages to include from each PDF file." }
+    ],
+    "zh": [
+      { "question": "合并 PDF 是免费的吗？", "answer": "是的，此工具完全免费使用。您可以无限制地合并 PDF 文件，无需任何费用或订阅。" },
+      { "question": "我的文件安全吗？", "answer": "所有文件都在我们的安全服务器上处理，处理后自动删除。" },
+      { "question": "我可以合并大型 PDF 文件吗？", "answer": "是的，您可以合并每个最大 100MB 的 PDF 文件。" },
+      { "question": "我可以合并加密的 PDF 文件吗？", "answer": "不可以，无法合并加密的 PDF 文件。您需要先移除密码保护。" },
+      { "question": "书签会被保留吗？", "answer": "您可以通过选择保留书签选项来保留书签。" },
+      { "question": "我可以选择特定页面吗？", "answer": "是的，使用页面范围选项指定要从每个 PDF 文件中包含哪些页面。" }
     ]
   },
   "result": {
